@@ -1,0 +1,83 @@
+@page "/buscar-orden"
+@rendermode InteractiveServer
+@using Models
+@using control_lavanderia.Components.SmallReusableComponents
+@using DTOs
+@using Services
+@inject OrdersService OrdersService
+
+
+<PageTitle>Buscar orden</PageTitle>
+<h1>Buscar orden</h1>
+
+<RadzenRow>
+    <RadzenColumn SizeMD="6" SizeXS="12">
+        <RadzenStack>
+            <RadzenLabel Text="Cliente" />
+            <RadzenAutoComplete Placeholder="Cliente" />
+        </RadzenStack>
+
+        <RadzenDataGrid TItem="Order" Data="@orders">
+            <Columns>
+                @if (selectedClient.Id == 0)
+                {
+                    <RadzenDataGridColumn TItem="Order" Property="Client.Name" Title="Cliente" />
+                }
+                <RadzenDataGridColumn TItem="Order" Property="RegisterDate" Title="Recibido">
+                    <Template Context="data">
+                        <span>@data.RegisterDate.ToString("dd/MM/yyyy")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+                @* <RadzenDataGridColumn TItem="Order" Property="Folio" Title="Folio" /> *@
+                <RadzenDataGridColumn TItem="Order" Title="Entregado">
+                    <Template Context="data">
+                        @if (data.DeliveryDate.HasValue)
+                        {
+                            <span>@data.DeliveryDate.Value.ToString("dd/MM/yyyy")</span>
+                        }
+                        else if (data.CancelDate.HasValue)
+                        {
+                            <span>@data.CancelDate.Value.ToString("dd/MM/yyyy") (CANCELADO)</span>
+                        }
+                        else
+                        {
+                            <span>PENDIENTE</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Order" Property="Folio" Title="Folio"/>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenColumn>
+
+    <RadzenColumn SizeMD="6" SizeXS="12">
+        @if (selectedOrder != null)
+        {
+            <RadzenStack>
+                <OrderDetails orderDetails="@orderDetails" />
+                <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="false" />
+            </RadzenStack>
+        }
+        else
+        {
+            <RadzenLabel Text="Seleccione una orden para ver los detalles." />
+        }
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    private Order? selectedOrder;
+
+    private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
+    private List<Order> orders = new List<Order>();
+    private List<OrderDetail> orderDetails = new List<OrderDetail>();
+
+    private Client selectedClient = new Client(String.Empty, String.Empty);
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await OrdersService.GetLastOrders();
+        orders = orders.ToList();
+    }
+
+}

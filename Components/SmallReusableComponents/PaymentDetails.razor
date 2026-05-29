@@ -1,0 +1,26 @@
+@using DTOs
+@using Utilities
+
+<RadzenStack JustifyContent="JustifyContent.End" Style="margin-top: 20px;">
+    <RadzenLabel Text="Total: " Style="font-weight: bold; font-size: 1.2em;" />
+    <RadzenLabel Text="@paymentDetailsDTO.Total.ToString()" Style="font-weight: bold; font-size: 1.2em;" />
+    <RadzenLabel Text="Adelanto: " Style="font-weight: bold; font-size: 1.2em;" />
+    @if (IsEditable)
+    {
+        <RadzenNumeric Step="1" Min="0" TValue="int" @bind-Value="paymentDetailsDTO.Adelanto" Max="@paymentDetailsDTO.Total"
+                       InputAttributes="StaticElements.numericSelectAllAttributes" />
+    }
+    else
+    {
+        <RadzenLabel Text="@paymentDetailsDTO.Adelanto.ToString()" Style="font-weight: bold; font-size: 1.2em;" />
+    }
+    <RadzenLabel Text="Restante: " Style="font-weight: bold; font-size: 1.2em;" />
+    <RadzenLabel Text="@((paymentDetailsDTO.Total - paymentDetailsDTO.Adelanto).ToString())" Style="font-weight: bold; font-size: 1.2em;" />
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public PaymentDetailsDTO paymentDetailsDTO { get; set; } = new PaymentDetailsDTO();
+    [Parameter]
+    public bool IsEditable { get; set; } = false;
+}

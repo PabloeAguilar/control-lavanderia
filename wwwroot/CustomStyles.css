@@ -1,0 +1,7 @@
+.accordion-item-custom button {
+    width: 100%;
+}
+
+.accordion-item-custom button span {
+    display: flex;
+}

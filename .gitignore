@@ -1,0 +1,42 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Logs and diagnostics
+*.log
+
+# ASP.NET / static web assets artifacts
+*.staticwebassets.endpoints.json
+*.staticwebassets.runtime.json
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+.env
+.env.*
+appsettings.Local.json
+
+# Node (if frontend tooling is added)
+node_modules/

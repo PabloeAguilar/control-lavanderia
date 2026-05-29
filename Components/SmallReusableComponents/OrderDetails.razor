@@ -1,0 +1,47 @@
+@using Models
+
+<RadzenLabel Text="Detalles de la orden" />
+
+<RadzenDataGrid Data="@orderDetails" TItem="OrderDetail">
+    <Columns>
+        <RadzenDataGridColumn TItem="OrderDetail" Property="Type" Title="Servicio">
+            <Template Context="data">
+                <span>@data.Type.ToUpper()</span>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="OrderDetail" Property="Quantity" Title="Cantidad">
+            <Template Context="data">
+                @if (data.Quantity == 0)
+                {
+                    <span>PENDIENTE</span>
+                    @if (data.Type == "planchado")
+                    {
+                        <span> (@data.Description)</span>
+                    }
+                }
+                else
+                {
+                    <span>@data.Quantity</span>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="OrderDetail" Property="Price" Title="Precio" />
+        <RadzenDataGridColumn TItem="OrderDetail" Property="Total" Title="Subtotal">
+            <Template Context="data">
+                @if (data.Total == 0)
+                {
+                    <span>PENDIENTE</span>
+                }
+                else
+                {
+                    <span>@data.Total</span>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [Parameter]
+    public List<OrderDetail> orderDetails { get; set; } = new List<OrderDetail>();
+}

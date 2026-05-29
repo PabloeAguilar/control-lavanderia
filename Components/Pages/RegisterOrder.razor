@@ -1,0 +1,176 @@
+@page "/registrar-orden"
+@rendermode InteractiveServer
+
+
+@using Models
+@using Utilities
+@using DTOs
+@using control_lavanderia.Components.SmallReusableComponents
+
+<HeadContent>
+    <link href="CustomStyles.css" rel="stylesheet" />
+</HeadContent>
+
+<PageTitle>Registro de orden</PageTitle>
+<h1>Registro de orden</h1>
+
+<RadzenRow>
+    <RadzenColumn SizeMD="6" SizeXS="12">
+        <RadzenStack>
+            <RadzenLabel Text="Cliente" />
+            <RadzenAutoComplete @bind-Value="client.Name" Placeholder="Nombre del cliente" />
+        </RadzenStack>
+        <RadzenAccordion Expand="onToggleAccordionItem">
+            <Items>
+                <RadzenAccordionItem Text="Ropa" class="accordion-item-custom">
+                    <RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="20px">
+                            <RadzenStack>
+                                <RadzenLabel Text="Cantidad" />
+                                <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="0.1" Min="0"
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                            </RadzenStack>
+                            <RadzenStack>
+                                <RadzenLabel Text="Precio" />
+                                <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                            </RadzenStack>
+                        </RadzenStack>
+                        <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("lavado"))"
+                                      Style="margin-top: 20px;" />
+                    </RadzenStack>
+                </RadzenAccordionItem>
+                <RadzenAccordionItem Text="Planchados" class="accordion-item-custom">
+                    <RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="20px">
+                            <RadzenStack>
+                                <RadzenLabel Text="Cantidad" />
+                                <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="1" Min="0"
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                            </RadzenStack>
+                            <RadzenStack>
+                                <RadzenLabel Text="Precio" />
+                                <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                            </RadzenStack>
+                        </RadzenStack>
+                        <RadzenStack>
+                            <RadzenLabel Text="Descripción" />
+                            <RadzenTextArea @bind-Value="orderDetailInfo.Description" />
+                        </RadzenStack>
+                        <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("planchado"))"
+                                      Style="margin-top: 20px;" />
+                    </RadzenStack>
+                </RadzenAccordionItem>
+                <RadzenAccordionItem Text="Individual" class="accordion-item-custom">
+                    <RadzenStack>
+                        <RadzenStack>
+                            <RadzenLabel Text="Descripción" />
+                            <RadzenAutoComplete InputAttributes="StaticElements.numericSelectAllAttributes"
+                                                @bind-Value="orderDetailInfo.Description" />
+                        </RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceAround"
+                                     Gap="20px">
+                            <RadzenStack>
+                                <RadzenLabel Text="Cantidad" />
+                                <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="1" Min="0"
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                            </RadzenStack>
+                            <RadzenStack>
+                                <RadzenLabel Text="Precio" />
+                                <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                            </RadzenStack>
+                        </RadzenStack>
+                        <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("individual"))"
+                                      Style="margin-top: 20px;" />
+                    </RadzenStack>
+                </RadzenAccordionItem>
+            </Items>
+        </RadzenAccordion>
+
+    </RadzenColumn>
+    <RadzenColumn SizeMD="6" SizeXS="12">
+        <OrderDetails orderDetails="@orderDetails" />
+        <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="true" />
+        
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenStack>
+    <RadzenRow>
+        <RadzenColumn SizeMD="6" SizeXS="12">
+            <RadzenStack>
+                <RadzenLabel Text="Comentarios" />
+                <RadzenTextArea />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+
+    
+    <RadzenButton Text="Registrar orden" Click="@RegistrarOrden" />
+</RadzenStack>
+
+
+
+
+
+
+@code {
+
+    private OrderDetailInfo orderDetailInfo = new OrderDetailInfo();
+
+    private List<OrderDetail> orderDetails = new List<OrderDetail>();
+
+    private Client client = new Client(String.Empty, String.Empty);
+
+
+    private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
+
+    
+
+
+
+
+
+    private void AgregarDetalleOrden(string tipoServicio)
+    {
+        orderDetails.Add(new OrderDetail(0, 0, tipoServicio, orderDetailInfo.Price, orderDetailInfo.Description,
+orderDetailInfo.Quantity));
+        orderDetails = orderDetails.ToList();
+        paymentDetailsDTO.Total += orderDetails.Last().Total ?? 0;
+        orderDetailInfo = new OrderDetailInfo();
+        // Lógica para agregar el detalle de la orden
+        // Puedes almacenar los detalles en una lista o enviarlos a un servicio
+    }
+
+
+    private void RegistrarOrden()
+    {
+        // Lógica para registrar la orden
+        // Puedes enviar los datos a un servicio o realizar cualquier acción necesaria
+        Console.WriteLine($"Orden registrada: Cantidad={orderDetailInfo.Quantity}, Precio={orderDetailInfo.Price}");
+    }
+
+    private void onToggleAccordionItem()
+    {
+        orderDetailInfo = new OrderDetailInfo();
+    }
+
+    private void RestartRegister() {
+        orderDetailInfo = new OrderDetailInfo();
+        orderDetails = new List<OrderDetail>();
+        client = new Client(String.Empty, String.Empty);
+        paymentDetailsDTO = new PaymentDetailsDTO();
+    }
+
+    private class OrderDetailInfo
+    {
+        public int Price { get; set; }
+        public string? Description { get; set; }
+        public decimal Quantity { get; set; }
+    }
+}
+
+
+
