@@ -16,7 +16,11 @@ namespace Models
         public string Folio { get; set; } = folio;
         [Required]
         public DateTime RegisterDate { get; set; } = DateTime.UtcNow;
+        [Required]
+        public DateTime ReceivedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? ReadyDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
+
         public DateTime? CancelDate { get; set; }
         public int Adelanto { get; set; } = 0;
         public string? Comments { get; set; } = comments;
@@ -25,6 +29,6 @@ namespace Models
 
         public Client? Client { get; set; }
 
-        public List<OrderDetail>? OrderDetails { get; set; } 
+        public List<OrderDetail>? OrderDetails { get; set; }
     }
 }
