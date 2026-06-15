@@ -16,10 +16,21 @@
 
 <RadzenRow>
     <RadzenColumn SizeMD="6" SizeXS="12">
-        <RadzenStack>
-            <RadzenLabel Text="Cliente" />
-            <RadzenAutoComplete @bind-Value="client.Name" Placeholder="Nombre del cliente" />
-        </RadzenStack>
+        <RadzenRow>
+            <RadzenColumn SizeMD="6" SizeXS="12">
+                <RadzenStack>
+                    <RadzenLabel Text="Cliente" />
+                    <RadzenAutoComplete @bind-Value="client.Name" Placeholder="Nombre del cliente" />
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn SizeMD="6" SizeXS="12">
+                <RadzenStack>
+                    <RadzenLabel Text="Fecha de recepción" />
+                    <RadzenDatePicker @bind-Value="receivedDate" Style="width:100%" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+
         <RadzenAccordion Expand="onToggleAccordionItem">
             <Items>
                 <RadzenAccordionItem Text="Ropa" class="accordion-item-custom">
@@ -93,7 +104,7 @@
     <RadzenColumn SizeMD="6" SizeXS="12">
         <OrderDetails orderDetails="@orderDetails" />
         <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="true" />
-        
+
     </RadzenColumn>
 </RadzenRow>
 
@@ -123,6 +134,8 @@
     private List<OrderDetail> orderDetails = new List<OrderDetail>();
 
     private Client client = new Client(String.Empty, String.Empty);
+
+    private DateTimeOffset receivedDate = DateTimeOffset.Now;
 
 
     private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
@@ -157,7 +170,8 @@ orderDetailInfo.Quantity));
         orderDetailInfo = new OrderDetailInfo();
     }
 
-    private void RestartRegister() {
+    private void RestartRegister()
+    {
         orderDetailInfo = new OrderDetailInfo();
         orderDetails = new List<OrderDetail>();
         client = new Client(String.Empty, String.Empty);

@@ -15,13 +15,13 @@ namespace Models
         [Required]
         public string Folio { get; set; } = folio;
         [Required]
-        public DateTime RegisterDate { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.Now;
         [Required]
-        public DateTime ReceivedDate { get; set; } = DateTime.UtcNow;
-        public DateTime? ReadyDate { get; set; }
-        public DateTime? DeliveryDate { get; set; }
+        public DateTimeOffset ReceivedDate { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset? ReadyDate { get; set; }
+        public DateTimeOffset? DeliveryDate { get; set; }
 
-        public DateTime? CancelDate { get; set; }
+        public DateTimeOffset? CancelDate { get; set; }
         public int Adelanto { get; set; } = 0;
         public string? Comments { get; set; } = comments;
         public int? IdCurrentLocation { get; set; } = idCurrentLocation;

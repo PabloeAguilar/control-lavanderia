@@ -16,7 +16,7 @@ namespace Models
         [ForeignKey("Location")] 
         public int LocationId { get; set; } = idLocation;
         public Location? Location { get; set; }
-        public DateTime Date { get; set; } = date;
+        public DateTimeOffset Date { get; set; } = DateTimeOffset.Now;
         public int? Quantity { get; set; } = quantity;
 
         public string? Comments { get; set; }
