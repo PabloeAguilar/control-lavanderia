@@ -4,20 +4,21 @@ using Services;
 
 namespace Models
 {
-    public class Order(int idCliente, string? comments, int? idCurrentLocation, string folio)
+    public class Order(string? comments, int? idCurrentLocation, string folio)
     {
         [Required]
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [Required]
-        public int IdCliente { get; set; } = idCliente;
+        [ForeignKey("Client")]
+        public int IdCliente { get; set; }
         [Required]
         public string Folio { get; set; } = folio;
         [Required]
-        public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.UtcNow;
         [Required]
-        public DateTimeOffset ReceivedDate { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset ReceivedDate { get; set; } = DateTimeOffset.UtcNow;
         public DateTimeOffset? ReadyDate { get; set; }
         public DateTimeOffset? DeliveryDate { get; set; }
 

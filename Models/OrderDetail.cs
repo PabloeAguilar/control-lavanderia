@@ -19,7 +19,7 @@ namespace Models
         public decimal Quantity { get; set; } = quantity;
         public int? Total { get; set; } = (int)Math.Floor(price * quantity);
 
-        public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.UtcNow;
         public DateTimeOffset? UpdateDate { get; set; }
     }
 

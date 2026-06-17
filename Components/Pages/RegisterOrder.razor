@@ -6,6 +6,9 @@
 @using Utilities
 @using DTOs
 @using control_lavanderia.Components.SmallReusableComponents
+@using Services
+@inject RegisterOrderService registerOrderService;
+@inject NotificationService notificationService;
 
 <HeadContent>
     <link href="CustomStyles.css" rel="stylesheet" />
@@ -14,18 +17,20 @@
 <PageTitle>Registro de orden</PageTitle>
 <h1>Registro de orden</h1>
 
+<RadzenNotification />
+
 <RadzenRow>
     <RadzenColumn SizeMD="6" SizeXS="12">
-        <RadzenRow>
+        <RadzenRow Style="margin-bottom: 20px;">
             <RadzenColumn SizeMD="6" SizeXS="12">
                 <RadzenStack>
-                    <RadzenLabel Text="Cliente" />
+                    <RadzenLabel Style="font-size: 1.5rem;" Text="Cliente" />
                     <RadzenAutoComplete @bind-Value="client.Name" Placeholder="Nombre del cliente" />
                 </RadzenStack>
             </RadzenColumn>
             <RadzenColumn SizeMD="6" SizeXS="12">
                 <RadzenStack>
-                    <RadzenLabel Text="Fecha de recepción" />
+                    <RadzenLabel Style="font-size: 1.5rem;" Text="Fecha de recepción" />
                     <RadzenDatePicker @bind-Value="receivedDate" Style="width:100%" />
                 </RadzenStack>
             </RadzenColumn>
@@ -112,8 +117,8 @@
     <RadzenRow>
         <RadzenColumn SizeMD="6" SizeXS="12">
             <RadzenStack>
-                <RadzenLabel Text="Comentarios" />
-                <RadzenTextArea />
+                <RadzenLabel  Style="font-size: 1.5rem;" Text="Comentarios" />
+                <RadzenTextArea @bind-Value="comments" />
             </RadzenStack>
         </RadzenColumn>
     </RadzenRow>
@@ -122,13 +127,9 @@
     <RadzenButton Text="Registrar orden" Click="@RegistrarOrden" />
 </RadzenStack>
 
-
-
-
-
-
 @code {
-
+    private bool isLoading = false;
+    private string comments = String.Empty;
     private OrderDetailInfo orderDetailInfo = new OrderDetailInfo();
 
     private List<OrderDetail> orderDetails = new List<OrderDetail>();
@@ -137,13 +138,7 @@
 
     private DateTimeOffset receivedDate = DateTimeOffset.Now;
 
-
     private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
-
-    
-
-
-
 
 
     private void AgregarDetalleOrden(string tipoServicio)
@@ -153,16 +148,32 @@ orderDetailInfo.Quantity));
         orderDetails = orderDetails.ToList();
         paymentDetailsDTO.Total += orderDetails.Last().Total ?? 0;
         orderDetailInfo = new OrderDetailInfo();
-        // Lógica para agregar el detalle de la orden
-        // Puedes almacenar los detalles en una lista o enviarlos a un servicio
     }
 
 
-    private void RegistrarOrden()
+    private async Task RegistrarOrden()
     {
-        // Lógica para registrar la orden
-        // Puedes enviar los datos a un servicio o realizar cualquier acción necesaria
-        Console.WriteLine($"Orden registrada: Cantidad={orderDetailInfo.Quantity}, Precio={orderDetailInfo.Price}");
+        Order newOrder = new Order(comments, null, "Folio" + DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        RegisterOrderRequest orderRequest = new()
+        {
+            Client = client,
+            ReceivedDate = receivedDate,
+            OrderDetails = orderDetails,
+            PaymentDetails = paymentDetailsDTO,
+            Order = newOrder
+        };
+        try
+        {
+            isLoading = true;
+            await registerOrderService.RegisterOrder(orderRequest);
+            isLoading = false;
+            notificationService.Notify(NotificationSeverity.Success, "Orden registrada exitosamente");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al registrar la orden: {ex.Message}");
+            notificationService.Notify(NotificationSeverity.Error, "Error al registrar la orden");
+        }
     }
 
     private void onToggleAccordionItem()

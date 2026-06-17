@@ -5,6 +5,7 @@ using Radzen;
 using Services;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -12,12 +13,14 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddRadzenComponents();
 
-builder.Services.AddDbContext<LavanderiaDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContextFactory<LavanderiaDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("LavanderiaConnection")));
 
 builder.Services.AddScoped<OrderNumberService>();
 builder.Services.AddHostedService<OrderNumberCacheCleanupService>();
 builder.Services.AddScoped<OrdersService>();
+builder.Services.AddScoped<RegisterOrderService>();
+builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 

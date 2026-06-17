@@ -12,12 +12,17 @@
 
 <RadzenRow>
     <RadzenColumn SizeMD="6" SizeXS="12">
-        <RadzenStack>
+        <RadzenStack Style="margin-bottom: 20px;">
             <RadzenLabel Text="Cliente" />
             <RadzenAutoComplete Placeholder="Cliente" />
         </RadzenStack>
 
-        <RadzenDataGrid TItem="Order" Data="@orders">
+        @if (isLoading)
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        }
+
+        <RadzenDataGrid RowClick="@(args => OnRowClick(args))" TItem="Order" Data="@orders">
             <Columns>
                 @if (selectedClient.Id == 0)
                 {
@@ -28,7 +33,6 @@
                         <span>@data.RegisterDate.ToString("dd/MM/yyyy")</span>
                     </Template>
                 </RadzenDataGridColumn>
-                @* <RadzenDataGridColumn TItem="Order" Property="Folio" Title="Folio" /> *@
                 <RadzenDataGridColumn TItem="Order" Title="Entregado">
                     <Template Context="data">
                         @if (data.DeliveryDate.HasValue)
@@ -45,7 +49,6 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Order" Property="Folio" Title="Folio"/>
             </Columns>
         </RadzenDataGrid>
     </RadzenColumn>
@@ -54,7 +57,7 @@
         @if (selectedOrder != null)
         {
             <RadzenStack>
-                <OrderDetails orderDetails="@orderDetails" />
+                <OrderDetails orderDetails="@selectedOrder.OrderDetails" folio="@selectedOrder.Folio" />
                 <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="false" />
             </RadzenStack>
         }
@@ -70,14 +73,28 @@
 
     private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
     private List<Order> orders = new List<Order>();
-    private List<OrderDetail> orderDetails = new List<OrderDetail>();
 
     private Client selectedClient = new Client(String.Empty, String.Empty);
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         orders = await OrdersService.GetLastOrders();
-        orders = orders.ToList();
+        isLoading = false;
+    }
+
+    private void OnRowClick(DataGridRowMouseEventArgs<Order> args)
+    {
+        selectedOrder = args.Data;
+        if (selectedOrder != null)
+        {
+            paymentDetailsDTO = new PaymentDetailsDTO
+            {
+                Total = selectedOrder.OrderDetails?.Sum(od => od.Total) ?? 0,
+                Adelanto = selectedOrder?.Adelanto ?? 0,
+            };
+        }
+
     }
 
 }

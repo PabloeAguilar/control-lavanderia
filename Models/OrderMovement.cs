@@ -3,21 +3,33 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Models
 {
-    public class OrderMovement(int orderId, int idLocation, DateTime date, int? quantity)
+    public class OrderMovement
     {
+        public OrderMovement()
+        {
+        }
+
+        public OrderMovement(int orderId, int locationId, DateTime date, int? quantity)
+        {
+            OrderId = orderId;
+            LocationId = locationId;
+            Date = new DateTimeOffset(date, TimeSpan.Zero);
+            Quantity = quantity;
+        }
+
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
         [Required]
         public int? Id { get; set; }
         public Order? Order { get; set; }
         [ForeignKey("Order")]
-        public int? OrderId { get; set; } = orderId;
+        public int? OrderId { get; set; }
         [Required]
-        [ForeignKey("Location")] 
-        public int LocationId { get; set; } = idLocation;
+        [ForeignKey("Location")]
+        public int LocationId { get; set; }
         public Location? Location { get; set; }
-        public DateTimeOffset Date { get; set; } = DateTimeOffset.Now;
-        public int? Quantity { get; set; } = quantity;
+        public DateTimeOffset Date { get; set; } = DateTimeOffset.UtcNow;
+        public int? Quantity { get; set; }
 
         public string? Comments { get; set; }
 

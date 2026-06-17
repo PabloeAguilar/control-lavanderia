@@ -1,6 +1,10 @@
 @using Models
 
-<RadzenLabel Text="Detalles de la orden" />
+<RadzenLabel Style="font-size: 1.5rem;" Text="Detalles de la orden" />
+@if (!string.IsNullOrEmpty(folio))
+{
+    <RadzenLabel Text=@String.Concat("Folio: ", folio) />
+}
 
 <RadzenDataGrid Data="@orderDetails" TItem="OrderDetail">
     <Columns>
@@ -44,4 +48,6 @@
 @code {
     [Parameter]
     public List<OrderDetail> orderDetails { get; set; } = new List<OrderDetail>();
+    [Parameter]
+    public string? folio { get; set; }
 }
