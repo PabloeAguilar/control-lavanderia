@@ -5,7 +5,13 @@
 @using DTOs
 @using Services
 @inject OrdersService OrdersService
+@inject DialogService dialogService
+@inject NotificationService notificationService
 
+
+
+<RadzenDialog />
+<RadzenNotification />
 
 <PageTitle>Buscar orden</PageTitle>
 <h1>Buscar orden</h1>
@@ -57,7 +63,16 @@
         @if (selectedOrder != null)
         {
             <RadzenStack>
-                <OrderDetails orderDetails="@selectedOrder.OrderDetails" folio="@selectedOrder.Folio" />
+                <RadzenRow>
+                    <RadzenColumn SizeMD="6" SizeXS="12">
+                        <RadzenButton Text="Gestionar orden" Icon="assignment_turned_in" ButtonStyle="ButtonStyle.Success"
+                                      Disabled="@(!CanManageSelectedOrder || isDelivering)" IsBusy="@isDelivering"
+                                      Click="OpenManageOrderDialog" Style="width: 100%;" />
+                    </RadzenColumn>
+                </RadzenRow>
+
+                <OrderDetails Order="@selectedOrder" orderDetails="@selectedOrder.OrderDetails" folio="@selectedOrder.Folio" IsEditable="true"
+                              IsReadOnly="@(!CanManageSelectedOrder)" OnEditRequested="OpenEditOrderDetailDialog" />
                 <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="false" />
             </RadzenStack>
         }
@@ -76,24 +91,117 @@
 
     private Client selectedClient = new Client(String.Empty, String.Empty);
     private bool isLoading = true;
+    private bool isDelivering = false;
+
+    private bool CanManageSelectedOrder => selectedOrder is not null
+        && !selectedOrder.DeliveryDate.HasValue
+        && !selectedOrder.CancelDate.HasValue;
 
     protected override async Task OnInitializedAsync()
     {
-        orders = await OrdersService.GetLastOrders();
-        isLoading = false;
+        await RefreshOrders();
     }
 
     private void OnRowClick(DataGridRowMouseEventArgs<Order> args)
     {
         selectedOrder = args.Data;
-        if (selectedOrder != null)
+        UpdatePaymentDetails();
+    }
+
+    private async Task OpenManageOrderDialog()
+    {
+        if (selectedOrder is null || !CanManageSelectedOrder)
+            return;
+
+        try
         {
-            paymentDetailsDTO = new PaymentDetailsDTO
+            isDelivering = true;
+            var action = await dialogService.OpenAsync<OrderActionDialog>(
+                "Gestionar orden",
+                null,
+                new DialogOptions
+                {
+                    Width = "420px",
+                    CloseDialogOnEsc = true
+                });
+
+            if (action is null)
+                return;
+
+            if (action.ToString() == "deliver")
             {
-                Total = selectedOrder.OrderDetails?.Sum(od => od.Total) ?? 0,
-                Adelanto = selectedOrder?.Adelanto ?? 0,
-            };
+                await OrdersService.DeliverOrder(selectedOrder.Id);
+                notificationService.Notify(NotificationSeverity.Success, "Orden entregada correctamente");
+            }
+            else if (action.ToString() == "cancel")
+            {
+                await OrdersService.CancelOrder(selectedOrder.Id);
+                notificationService.Notify(NotificationSeverity.Warning, "Orden cancelada correctamente");
+            }
+
+            await RefreshSelectedOrder();
+            await RefreshOrders();
         }
+        catch
+        {
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar el estado de la orden");
+        }
+        finally
+        {
+            isDelivering = false;
+        }
+    }
+
+    private async Task OpenEditOrderDetailDialog(OrderDetail orderDetail)
+    {
+        if (!CanManageSelectedOrder)
+            return;
+
+        var updated = await dialogService.OpenAsync<EditOrderDetailDialog>(
+            "Modificar detalle de orden",
+            new Dictionary<string, object?>
+            {
+                { nameof(EditOrderDetailDialog.OrderDetailId), orderDetail.Id }
+            },
+            new DialogOptions
+            {
+                Width = "600px",
+                CloseDialogOnEsc = true
+            });
+
+        if (updated is true)
+        {
+            await RefreshSelectedOrder();
+            await RefreshOrders();
+        }
+    }
+
+    private async Task RefreshSelectedOrder()
+    {
+        if (selectedOrder is null)
+            return;
+
+        selectedOrder = await OrdersService.GetOrderById(selectedOrder.Id);
+        UpdatePaymentDetails();
+    }
+
+    private async Task RefreshOrders()
+    {
+        isLoading = true;
+        orders = await OrdersService.GetLastOrders();
+        isLoading = false;
+    }
+
+    private void UpdatePaymentDetails()
+    {
+        if (selectedOrder is null)
+            return;
+
+        paymentDetailsDTO = new PaymentDetailsDTO
+        {
+            Total = selectedOrder.OrderDetails?.Sum(od => od.Total) ?? 0,
+            Adelanto = selectedOrder.Adelanto,
+        };
 
     }
 

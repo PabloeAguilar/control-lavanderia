@@ -1,0 +1,30 @@
+@inject DialogService dialogService
+
+<RadzenStack Gap="12px" Style="padding: 8px; min-width: 280px;">
+    <RadzenText TextStyle="TextStyle.Body1" Text="Selecciona la accion para esta orden." />
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="8px">
+        <RadzenButton Text="Cancelar" Icon="cancel" ButtonStyle="ButtonStyle.Danger" Click="SelectCancel" />
+        <RadzenButton Text="Entregar" Icon="done" ButtonStyle="ButtonStyle.Success" Click="SelectDeliver" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="8px">
+        <RadzenButton Text="Cerrar" ButtonStyle="ButtonStyle.Light" Click="CloseDialog" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    private void SelectDeliver()
+    {
+        dialogService.Close("deliver");
+    }
+
+    private void SelectCancel()
+    {
+        dialogService.Close("cancel");
+    }
+
+    private void CloseDialog()
+    {
+        dialogService.Close(null);
+    }
+}

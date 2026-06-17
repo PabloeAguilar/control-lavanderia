@@ -1,0 +1,90 @@
+@using Models
+@using Services
+@inject DialogService dialogService
+@inject NotificationService notificationService
+@inject OrderDetailsService orderDetailsService
+
+<RadzenStack Gap="12px" Style="padding: 8px;">
+    @if (isLoading)
+    {
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (editableOrderDetail is null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Text="No se encontro el detalle de la orden." />
+        <RadzenButton Text="Cerrar" ButtonStyle="ButtonStyle.Light" Click="CloseDialog" />
+    }
+    else
+    {
+        <RadzenStack>
+            <RadzenLabel Text=@($"Servicio: {editableOrderDetail.Type}") />
+            <RadzenLabel Text="Cantidad" />
+            <RadzenNumeric TValue="decimal" Step="0.1" Min="0" @bind-Value="editableOrderDetail.Quantity" Style="width: 100%;" />
+
+            <RadzenLabel Text="Precio" />
+            <RadzenNumeric TValue="int" Step="1" Min="0" @bind-Value="editableOrderDetail.Price" Disabled="true" Style="width: 100%;" />
+
+            <RadzenLabel Text="Descripcion" />
+            <RadzenTextArea @bind-Value="editableOrderDetail.Description" Style="width: 100%;" />
+
+            <RadzenText TextStyle="TextStyle.Body2" Text=@($"Subtotal: {(int)Math.Floor(editableOrderDetail.Price * editableOrderDetail.Quantity)}") />
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="8px">
+            <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="CloseDialog" />
+            <RadzenButton Text="Guardar cambios" ButtonStyle="ButtonStyle.Primary" IsBusy="isSaving" Click="SaveChanges" />
+        </RadzenStack>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public int OrderDetailId { get; set; }
+
+    private OrderDetail? editableOrderDetail;
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        editableOrderDetail = await orderDetailsService.GetById(OrderDetailId);
+        isLoading = false;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (editableOrderDetail is null)
+            return;
+
+        if (editableOrderDetail.Quantity < 0)
+        {
+            notificationService.Notify(NotificationSeverity.Warning, "La cantidad no puede ser negativa");
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            await orderDetailsService.UpdateDetail(
+                editableOrderDetail.Id,
+                editableOrderDetail.Quantity,
+                editableOrderDetail.Description);
+
+            notificationService.Notify(NotificationSeverity.Success, "Detalle actualizado correctamente");
+            dialogService.Close(true);
+        }
+        catch
+        {
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar el detalle");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CloseDialog()
+    {
+        dialogService.Close(false);
+    }
+}

@@ -1,12 +1,20 @@
 @using Models
 
 <RadzenLabel Style="font-size: 1.5rem;" Text="Detalles de la orden" />
-@if (!string.IsNullOrEmpty(folio))
+@if (Order is not null)
 {
-    <RadzenLabel Text=@String.Concat("Folio: ", folio) />
+    @if (Order.Client is not null)
+    {
+        <RadzenLabel Text=@String.Concat("Cliente: ", Order.Client.Name) />
+    }
+    <RadzenLabel Text=@String.Concat("Folio: ", Order.Folio) />
+    <RadzenLabel
+    Text="@String.Concat("Entregado: ", Order.DeliveryDate.HasValue ? Order.DeliveryDate.Value.ToString("dd/MM/yyyy") : "PENDIENTE")" />
+
 }
 
-<RadzenDataGrid Data="@orderDetails" TItem="OrderDetail">
+
+<RadzenDataGrid Data="@orderDetails" TItem="OrderDetail" Responsive="true">
     <Columns>
         <RadzenDataGridColumn TItem="OrderDetail" Property="Type" Title="Servicio">
             <Template Context="data">
@@ -42,6 +50,15 @@
                 }
             </Template>
         </RadzenDataGridColumn>
+        @if (IsEditable)
+        {
+            <RadzenDataGridColumn TItem="OrderDetail" Title="Acciones" Width="130px" TextAlign="TextAlign.Center">
+                <Template Context="data">
+                    <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
+                                  Click="@(() => OnEditRequested.InvokeAsync(data))" Disabled="@IsReadOnly" />
+                </Template>
+            </RadzenDataGridColumn>
+        }
     </Columns>
 </RadzenDataGrid>
 
@@ -50,4 +67,13 @@
     public List<OrderDetail> orderDetails { get; set; } = new List<OrderDetail>();
     [Parameter]
     public string? folio { get; set; }
+    [Parameter]
+    public bool IsEditable { get; set; } = false;
+    [Parameter]
+    public bool IsReadOnly { get; set; } = false;
+    [Parameter]
+    public EventCallback<OrderDetail> OnEditRequested { get; set; }
+
+    [Parameter]
+    public required Order Order { get; set; }
 }
