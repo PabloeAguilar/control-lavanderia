@@ -5,6 +5,7 @@
 @using DTOs
 @using Services
 @inject OrdersService OrdersService
+@inject ClientsService ClientsService
 @inject DialogService dialogService
 @inject NotificationService notificationService
 
@@ -20,7 +21,16 @@
     <RadzenColumn SizeMD="6" SizeXS="12">
         <RadzenStack Style="margin-bottom: 20px;">
             <RadzenLabel Text="Cliente" />
-            <RadzenAutoComplete Placeholder="Cliente" />
+            <RadzenAutoComplete @bind-Value="clientName"
+                                Data="@clientSuggestions"
+                                TextProperty="@nameof(Client.Name)"
+                                Placeholder="Cliente"
+                                Change="OnClientChangedAsync"
+                                OpenOnFocus="true"
+                                MinLength="3"
+                                FilterDelay="400"
+                                FilterOperator="StringFilterOperator.StartsWith"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
         </RadzenStack>
 
         @if (isLoading)
@@ -90,6 +100,8 @@
     private List<Order> orders = new List<Order>();
 
     private Client selectedClient = new Client(String.Empty, String.Empty);
+    private IEnumerable<Client> clientSuggestions = Array.Empty<Client>();
+    private string clientName = string.Empty;
     private bool isLoading = true;
     private bool isDelivering = false;
 
@@ -99,6 +111,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadClientSuggestions();
         await RefreshOrders();
     }
 
@@ -188,8 +201,63 @@
     private async Task RefreshOrders()
     {
         isLoading = true;
-        orders = await OrdersService.GetLastOrders();
-        isLoading = false;
+
+        try
+        {
+            orders = selectedClient.Id > 0
+                ? await OrdersService.GetLastOrdersByClient(selectedClient.Id)
+                : await OrdersService.GetLastOrders();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadClientSuggestions()
+    {
+        clientSuggestions = await ClientsService.SearchClientsByName(null, 1000);
+    }
+
+    private async Task OnClientChangedAsync(object value)
+    {
+        clientName = value?.ToString()?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(clientName))
+        {
+            selectedClient = new Client(string.Empty, string.Empty);
+            selectedOrder = null;
+            paymentDetailsDTO = new PaymentDetailsDTO();
+            await RefreshOrders();
+            return;
+        }
+
+        var matchedClient = clientSuggestions.FirstOrDefault(client =>
+            string.Equals(client.Name, clientName, StringComparison.OrdinalIgnoreCase));
+
+        if (matchedClient is null)
+        {
+            if (selectedClient.Id != 0)
+            {
+                selectedClient = new Client(string.Empty, string.Empty);
+                selectedOrder = null;
+                paymentDetailsDTO = new PaymentDetailsDTO();
+                await RefreshOrders();
+            }
+
+            return;
+        }
+
+        if (selectedClient.Id == matchedClient.Id)
+        {
+            return;
+        }
+
+        selectedClient = matchedClient;
+        clientName = matchedClient.Name;
+        selectedOrder = null;
+        paymentDetailsDTO = new PaymentDetailsDTO();
+        await RefreshOrders();
     }
 
     private void UpdatePaymentDetails()
