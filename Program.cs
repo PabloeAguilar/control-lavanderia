@@ -20,6 +20,7 @@ builder.Services.AddScoped<OrderNumberService>();
 builder.Services.AddHostedService<OrderNumberCacheCleanupService>();
 builder.Services.AddScoped<OrdersService>();
 builder.Services.AddScoped<OrderDetailsService>();
+builder.Services.AddScoped<ClientsService>();
 builder.Services.AddScoped<RegisterOrderService>();
 builder.Services.AddScoped<NotificationService>();
 

@@ -8,6 +8,7 @@
 @using control_lavanderia.Components.SmallReusableComponents
 @using Services
 @inject RegisterOrderService registerOrderService;
+@inject ClientsService clientsService;
 @inject NotificationService notificationService;
 
 <HeadContent>
@@ -25,7 +26,18 @@
             <RadzenColumn SizeMD="6" SizeXS="12">
                 <RadzenStack>
                     <RadzenLabel Style="font-size: 1.5rem;" Text="Cliente" />
-                    <RadzenAutoComplete @bind-Value="client.Name" Placeholder="Nombre del cliente" />
+                    <RadzenAutoComplete @bind-Value="clientName"
+                                        @bind-SelectedItem="selectedClientItem"
+                                        Data="@clientSuggestions"
+                                        TextProperty="@nameof(Client.Name)"
+                                        Placeholder="Nombre del cliente"
+                                        LoadData="LoadClientsAsync"
+                                        Change="OnClientChangedAsync"
+                                        OpenOnFocus="true"
+                                        MinLength="0"
+                                        FilterDelay="150"
+                                        FilterOperator="StringFilterOperator.StartsWith"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
                 </RadzenStack>
             </RadzenColumn>
             <RadzenColumn SizeMD="6" SizeXS="12">
@@ -128,13 +140,15 @@
 </RadzenStack>
 
 @code {
-    private bool isLoading = false;
     private string comments = String.Empty;
     private OrderDetailInfo orderDetailInfo = new OrderDetailInfo();
 
     private List<OrderDetail> orderDetails = new List<OrderDetail>();
 
     private Client client = new Client(String.Empty, String.Empty);
+    private IEnumerable<Client> clientSuggestions = Array.Empty<Client>();
+    private object? selectedClientItem;
+    private string clientName = string.Empty;
 
     private DateTimeOffset receivedDate = DateTimeOffset.Now;
 
@@ -153,6 +167,16 @@ orderDetailInfo.Quantity));
 
     private async Task RegistrarOrden()
     {
+        clientName = clientName.Trim();
+
+        if (string.IsNullOrWhiteSpace(clientName))
+        {
+            notificationService.Notify(NotificationSeverity.Warning, "Debe ingresar un cliente");
+            return;
+        }
+
+        client.Name = clientName;
+
         Order newOrder = new Order(comments, null, "Folio" + DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         RegisterOrderRequest orderRequest = new()
         {
@@ -164,9 +188,7 @@ orderDetailInfo.Quantity));
         };
         try
         {
-            isLoading = true;
             await registerOrderService.RegisterOrder(orderRequest);
-            isLoading = false;
             notificationService.Notify(NotificationSeverity.Success, "Orden registrada exitosamente");
         }
         catch (Exception ex)
@@ -181,11 +203,60 @@ orderDetailInfo.Quantity));
         orderDetailInfo = new OrderDetailInfo();
     }
 
+    private Task LoadClientsAsync(LoadDataArgs args)
+    {
+        var filter = args.Filter?.Trim() ?? string.Empty;
+        return LoadClientsByFilterAsync(filter);
+    }
+
+    private async Task LoadClientsByFilterAsync(string filter)
+    {
+        clientSuggestions = await clientsService.SearchClientsByName(filter);
+    }
+
+    private Task OnClientChangedAsync(object value)
+    {
+        var normalizedClientName = value?.ToString()?.Trim() ?? string.Empty;
+        return OnClientNameChangedAsync(normalizedClientName);
+    }
+
+    private async Task OnClientNameChangedAsync(string normalizedClientName)
+    {
+        clientName = normalizedClientName;
+
+        if (string.IsNullOrWhiteSpace(clientName))
+        {
+            client = new Client(string.Empty, string.Empty);
+            selectedClientItem = null;
+            return;
+        }
+
+        if (selectedClientItem is Client selectedClient
+            && string.Equals(selectedClient.Name, clientName, StringComparison.OrdinalIgnoreCase))
+        {
+            client = selectedClient;
+            clientName = selectedClient.Name;
+            return;
+        }
+
+        var existingClient = await clientsService.GetClientByExactName(clientName);
+        client = existingClient ?? new Client(clientName, string.Empty);
+        selectedClientItem = existingClient;
+
+        if (existingClient is not null)
+        {
+            clientName = existingClient.Name;
+        }
+    }
+
     private void RestartRegister()
     {
         orderDetailInfo = new OrderDetailInfo();
         orderDetails = new List<OrderDetail>();
         client = new Client(String.Empty, String.Empty);
+        clientSuggestions = Array.Empty<Client>();
+        clientName = string.Empty;
+        selectedClientItem = null;
         paymentDetailsDTO = new PaymentDetailsDTO();
     }
 
