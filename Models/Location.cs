@@ -12,5 +12,7 @@ namespace Models
         public string Name { get; set; } = name;
         public string? Description { get; set; } = description;
         public int Position { get; set; } = position;
+
+        public int MaxCapacity { get; set; } = 0;
     }
 }   

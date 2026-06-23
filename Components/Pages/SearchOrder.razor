@@ -10,7 +10,7 @@
 @inject NotificationService notificationService
 
 
-
+@* TODO: Requires revision for on load filtering in auto complete *@
 <RadzenDialog />
 <RadzenNotification />
 
@@ -29,7 +29,7 @@
                                 OpenOnFocus="true"
                                 MinLength="3"
                                 FilterDelay="400"
-                                FilterOperator="StringFilterOperator.StartsWith"
+                                FilterOperator="StringFilterOperator.Contains"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
         </RadzenStack>
 

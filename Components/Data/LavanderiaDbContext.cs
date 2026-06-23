@@ -25,5 +25,8 @@ public class LavanderiaDbContext : DbContext
         modelBuilder.Entity<Order>()
             .HasIndex(o => o.Folio)
             .IsUnique();
+        modelBuilder.Entity<Configuration>()
+            .HasIndex(c => c.Key)
+            .IsUnique();
     }
 }

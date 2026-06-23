@@ -9,11 +9,11 @@ namespace Models
         {
         }
 
-        public OrderMovement(int orderId, int locationId, DateTime date, int? quantity)
+        public OrderMovement(int orderId, int locationId, DateTimeOffset date, int? quantity)
         {
             OrderId = orderId;
             LocationId = locationId;
-            Date = new DateTimeOffset(date, TimeSpan.Zero);
+            Date = date.ToUniversalTime();
             Quantity = quantity;
         }
 
@@ -32,6 +32,7 @@ namespace Models
         public int? Quantity { get; set; }
 
         public string? Comments { get; set; }
+
 
     }
 }

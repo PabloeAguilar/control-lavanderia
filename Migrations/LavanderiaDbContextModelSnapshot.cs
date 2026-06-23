@@ -44,6 +44,30 @@ namespace controllavanderia.Migrations
                     b.ToTable("Clients");
                 });
 
+            modelBuilder.Entity("Models.Configuration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Configuration");
+                });
+
             modelBuilder.Entity("Models.Location", b =>
                 {
                     b.Property<int>("Id")
@@ -54,6 +78,9 @@ namespace controllavanderia.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
+
+                    b.Property<int>("MaxCapacity")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
