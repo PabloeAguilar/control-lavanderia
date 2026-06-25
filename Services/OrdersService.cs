@@ -18,18 +18,18 @@ namespace Services
                 .ToListAsync();
         }
 
-            public async Task<List<Order>> GetLastOrdersByClient(int clientId)
-            {
-                await using var _context = await context.CreateDbContextAsync();
-                return await _context.Orders
-                .Where(order => order.IdCliente == clientId)
-                .OrderByDescending(order => order.RegisterDate)
-                .ThenByDescending(order => order.Id)
-                .Take(10)
-                .Include(order => order.Client)
-                .Include(order => order.OrderDetails)
-                .ToListAsync();
-            }
+        public async Task<List<Order>> GetLastOrdersByClient(int clientId)
+        {
+            await using var _context = await context.CreateDbContextAsync();
+            return await _context.Orders
+            .Where(order => order.IdCliente == clientId)
+            .OrderByDescending(order => order.RegisterDate)
+            .ThenByDescending(order => order.Id)
+            .Take(10)
+            .Include(order => order.Client)
+            .Include(order => order.OrderDetails)
+            .ToListAsync();
+        }
 
         public async Task<Order?> GetOrderById(int orderId)
         {

@@ -19,10 +19,12 @@ builder.Services.AddDbContextFactory<LavanderiaDbContext>(options =>
 builder.Services.AddScoped<OrderNumberService>();
 builder.Services.AddHostedService<OrderNumberCacheCleanupService>();
 builder.Services.AddScoped<OrdersService>();
+builder.Services.AddScoped<ControlPointService>();
 builder.Services.AddScoped<OrderDetailsService>();
 builder.Services.AddScoped<ClientsService>();
 builder.Services.AddScoped<RegisterOrderService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<ConfigurationsService>();
 
 var app = builder.Build();
 

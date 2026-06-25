@@ -199,6 +199,9 @@ namespace controllavanderia.Migrations
                     b.Property<string>("Comments")
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset?>("CompletedDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset>("Date")
                         .HasColumnType("timestamp with time zone");
 
@@ -210,6 +213,9 @@ namespace controllavanderia.Migrations
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("RegisterDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

@@ -7,9 +7,11 @@
 @using DTOs
 @using control_lavanderia.Components.SmallReusableComponents
 @using Services
+@using System.Collections.Immutable
 @inject RegisterOrderService registerOrderService;
 @inject ClientsService clientsService;
 @inject NotificationService notificationService;
+@inject ConfigurationsService configurationsService;
 
 <HeadContent>
     <link href="CustomStyles.css" rel="stylesheet" />
@@ -26,17 +28,10 @@
             <RadzenColumn SizeMD="6" SizeXS="12">
                 <RadzenStack>
                     <RadzenLabel Style="font-size: 1.5rem;" Text="Cliente" />
-                    <RadzenAutoComplete @bind-Value="clientName"
-                                        @bind-SelectedItem="selectedClientItem"
-                                        Data="@clientSuggestions"
-                                        TextProperty="@nameof(Client.Name)"
-                                        Placeholder="Nombre del cliente"
-                                        LoadData="LoadClientsAsync"
-                                        Change="OnClientChangedAsync"
-                                        OpenOnFocus="true"
-                                        MinLength="0"
-                                        FilterDelay="150"
-                                        FilterOperator="StringFilterOperator.StartsWith"
+                    <RadzenAutoComplete @bind-Value="clientName" @bind-SelectedItem="selectedClientItem"
+                                        Data="@clientSuggestions" TextProperty="@nameof(Client.Name)" Placeholder="Nombre del cliente"
+                                        LoadData="LoadClientsAsync" Change="OnClientChangedAsync" OpenOnFocus="true" MinLength="0"
+                                        FilterDelay="150" FilterOperator="StringFilterOperator.StartsWith"
                                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
                 </RadzenStack>
             </RadzenColumn>
@@ -48,7 +43,7 @@
             </RadzenColumn>
         </RadzenRow>
 
-        <RadzenAccordion Expand="onToggleAccordionItem">
+        <RadzenAccordion Expand="args => onToggleAccordionItem(args)">
             <Items>
                 <RadzenAccordionItem Text="Ropa" class="accordion-item-custom">
                     <RadzenStack>
@@ -129,7 +124,7 @@
     <RadzenRow>
         <RadzenColumn SizeMD="6" SizeXS="12">
             <RadzenStack>
-                <RadzenLabel  Style="font-size: 1.5rem;" Text="Comentarios" />
+                <RadzenLabel Style="font-size: 1.5rem;" Text="Comentarios" />
                 <RadzenTextArea @bind-Value="comments" />
             </RadzenStack>
         </RadzenColumn>
@@ -154,14 +149,50 @@
 
     private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
 
+    private Configuration? ropaConfiguration;
+    private Configuration? planchadoConfiguration;
+
+    private async Task LoadConfigurationsAsync()
+    {
+        ropaConfiguration = await configurationsService.GetConfiguration("PrecioLavado");
+        planchadoConfiguration = await configurationsService.GetConfiguration("PrecioPlanchado");
+        Console.WriteLine($"Loaded configurations: Lavado={ropaConfiguration?.Value}, Planchado={planchadoConfiguration?.Value}");
+    }
+
+    private OrderDetailInfo newOrderDetail(string? index)
+    {
+        var newObject = new OrderDetailInfo();
+        if (index == null || index == "2")
+        {
+            newObject.Price = 0;
+        }
+        else if (index == "0" && ropaConfiguration != null)
+        {
+            newObject.Price = int.Parse(ropaConfiguration.Value);
+        }
+        else if (index == "1" && planchadoConfiguration != null)
+        {
+            newObject.Price = int.Parse(planchadoConfiguration.Value);
+        }
+        return newObject;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadConfigurationsAsync();
+        orderDetailInfo = newOrderDetail(null);
+
+        
+    }
 
     private void AgregarDetalleOrden(string tipoServicio)
     {
+        if (orderDetailInfo == null) return;
         orderDetails.Add(new OrderDetail(0, 0, tipoServicio, orderDetailInfo.Price, orderDetailInfo.Description,
 orderDetailInfo.Quantity));
         orderDetails = orderDetails.ToList();
         paymentDetailsDTO.Total += orderDetails.Last().Total ?? 0;
-        orderDetailInfo = new OrderDetailInfo();
+        orderDetailInfo = newOrderDetail(TipoServicioIndex.TryGetValue(tipoServicio, out var index) ? index : null);
     }
 
 
@@ -198,9 +229,9 @@ orderDetailInfo.Quantity));
         }
     }
 
-    private void onToggleAccordionItem()
+    private void onToggleAccordionItem(object args)
     {
-        orderDetailInfo = new OrderDetailInfo();
+        orderDetailInfo = newOrderDetail(args.ToString() ?? string.Empty);
     }
 
     private Task LoadClientsAsync(LoadDataArgs args)
@@ -260,12 +291,20 @@ orderDetailInfo.Quantity));
         paymentDetailsDTO = new PaymentDetailsDTO();
     }
 
+    private static ImmutableDictionary<string, string> TipoServicioIndex = ImmutableDictionary.CreateRange(new Dictionary<string, string>
+    {
+        { "lavado", "0" },
+        { "planchado", "1" },
+        { "individual", "2" }
+    });
+
     private class OrderDetailInfo
     {
         public int Price { get; set; }
         public string? Description { get; set; }
         public decimal Quantity { get; set; }
     }
+
 }
 
 

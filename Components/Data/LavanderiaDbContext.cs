@@ -17,6 +17,7 @@ public class LavanderiaDbContext : DbContext
     public DbSet<OrderMovement> OrderMovements { get; set; }
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<Suggestion> Suggestions { get; set; }
+    public DbSet<Configuration> Configurations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

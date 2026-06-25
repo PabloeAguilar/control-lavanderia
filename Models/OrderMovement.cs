@@ -33,6 +33,7 @@ namespace Models
 
         public string? Comments { get; set; }
 
-
+        public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset? CompletedDate { get; set; }
     }
 }
