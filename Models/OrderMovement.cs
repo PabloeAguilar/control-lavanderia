@@ -35,5 +35,7 @@ namespace Models
 
         public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.UtcNow;
         public DateTimeOffset? CompletedDate { get; set; }
+
+        public DateTimeOffset? DeletedDate { get; set; }
     }
 }

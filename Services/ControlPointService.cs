@@ -25,13 +25,18 @@ namespace Services
                 .ToListAsync();
         }
 
-        public async Task<List<OrderMovement>> GetMovementsByLocation(int locationId)
+        public async Task<List<OrderMovement>> GetMovementsByLocation(int locationId, DateTimeOffset? startDate = null)
         {
+            var reference = startDate ?? DateTimeOffset.Now;
+            var dayStart = new DateTimeOffset(reference.Year, reference.Month, reference.Day, 0, 0, 0, reference.Offset).ToUniversalTime();
+            var dayEnd = dayStart.AddDays(1);
             await using var context = await contextFactory.CreateDbContextAsync();
             return await context.OrderMovements
                 .Include(movement => movement.Order)
                 .ThenInclude(order => order!.Client)
                 .Where(movement => movement.LocationId == locationId)
+                .Where(movement => !movement.DeletedDate.HasValue)
+                .Where(movement => movement.Date >= dayStart && movement.Date < dayEnd)
                 .OrderByDescending(movement => movement.Date)
                 .ToListAsync();
         }
@@ -86,8 +91,7 @@ namespace Services
             {
                 return false;
             }
-
-            context.OrderMovements.Remove(movementDb);
+            movementDb.DeletedDate = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync();
             return true;
         }

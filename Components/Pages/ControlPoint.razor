@@ -19,8 +19,8 @@
                 <RadzenButton Text="Regresar" Click="@(() => selectedLocation = null)" />
                 <h2>Seleccionado: @selectedLocation.Name</h2>
                 <p>@selectedLocation.Description</p>
-                <RadzenButton Text="Registrar movimiento" Click="@InsertRow" Disabled="@(newOrderMovement != null)" />
-            </RadzenStack>
+                <RadzenDatePicker @bind-Value="searchDate" ShowButton="false" Change="@(async args => await LoadMovementsByLocationAsync(selectedLocation.Id))" />
+                <RadzenButton Text="Registrar movimiento" Click="@InsertRow" Disabled="@(newOrderMovement != null)" />            </RadzenStack>
         </RadzenColumn>
     </RadzenRow>
 
@@ -102,6 +102,7 @@ else
     private List<Order> availableOrders = new List<Order>();
     private List<Location> locations = new List<Location>();
     private List<OrderMovement> orderMovements = new List<OrderMovement>();
+    private DateOnly searchDate = DateOnly.FromDateTime(DateTimeOffset.Now.Date);
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,7 +122,8 @@ else
 
     private async Task LoadMovementsByLocationAsync(int locationId)
     {
-        orderMovements = await ControlPointService.GetMovementsByLocation(locationId);
+        Console.WriteLine($"Loading movements for location {locationId} on date {searchDate.ToDateTime(TimeOnly.MinValue)}");
+        orderMovements = await ControlPointService.GetMovementsByLocation(locationId, searchDate.ToDateTime(TimeOnly.MinValue));
     }
 
     async Task OnLocationSelected(DataGridRowMouseEventArgs<Location> args)

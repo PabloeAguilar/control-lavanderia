@@ -205,6 +205,9 @@ namespace controllavanderia.Migrations
                     b.Property<DateTimeOffset>("Date")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("LocationId")
                         .HasColumnType("integer");
 
