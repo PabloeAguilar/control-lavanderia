@@ -1,0 +1,30 @@
+# Build output
+bin/
+obj/
+out/
+
+# IDE and tooling
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Git
+.git/
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker artifacts
+.dockerignore
+
+# Local configuration and secrets
+.env
+.env.*
+*.local.json
+
+# Node artifacts (if ever added)
+node_modules/

@@ -44,9 +44,9 @@
                 {
                     <RadzenDataGridColumn TItem="Order" Property="Client.Name" Title="Cliente" />
                 }
-                <RadzenDataGridColumn TItem="Order" Property="RegisterDate" Title="Recibido">
+                <RadzenDataGridColumn TItem="Order" Property="ReceivedDate" Title="Recibido">
                     <Template Context="data">
-                        <span>@data.RegisterDate.ToString("dd/MM/yyyy")</span>
+                        <span>@data.ReceivedDate.ToLocalTime().ToString("dd/MM/yyyy")</span>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Order" Title="Entregado">
@@ -69,7 +69,7 @@
         </RadzenDataGrid>
     </RadzenColumn>
 
-    <RadzenColumn SizeMD="6" SizeXS="12">
+    <RadzenColumn SizeMD="6" SizeXS="12" Style="margin-bottom: 30px;">
         @if (selectedOrder != null)
         {
             <RadzenStack>

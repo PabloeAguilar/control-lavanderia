@@ -25,7 +25,7 @@ namespace controllavanderia.Migrations
                 defaultValue: new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)));
 
             migrationBuilder.InsertData(
-                table: "Configurations",
+                table: "Configuration",
                 columns: ["Key", "Value"],
                 values: new object[,]
                 {
@@ -70,7 +70,7 @@ namespace controllavanderia.Migrations
                 keyValues: ["cobertor", "edredon", "almohada", "par-tenis", "pieza-ropa"]);
 
             migrationBuilder.DeleteData(
-                table: "Configurations",
+                table: "Configuration",
                 keyColumn: "Key",
                 keyValues: ["PrecioLavado", "PrecioPlanchado"]);
 

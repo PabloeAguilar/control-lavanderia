@@ -32,13 +32,13 @@
                                         Data="@clientSuggestions" TextProperty="@nameof(Client.Name)" Placeholder="Nombre del cliente"
                                         LoadData="LoadClientsAsync" Change="OnClientChangedAsync" OpenOnFocus="true" MinLength="0"
                                         FilterDelay="150" FilterOperator="StringFilterOperator.StartsWith"
-                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Disabled="isOrderRegistered" />
                 </RadzenStack>
             </RadzenColumn>
             <RadzenColumn SizeMD="6" SizeXS="12">
                 <RadzenStack>
                     <RadzenLabel Style="font-size: 1.5rem;" Text="Fecha de recepción" />
-                    <RadzenDatePicker @bind-Value="receivedDate" Style="width:100%" />
+                    <RadzenDatePicker @bind-Value="receivedDate" Style="width:100%" Disabled="isOrderRegistered" />
                 </RadzenStack>
             </RadzenColumn>
         </RadzenRow>
@@ -51,16 +51,16 @@
                             <RadzenStack>
                                 <RadzenLabel Text="Cantidad" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="0.1" Min="0"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
                             </RadzenStack>
                             <RadzenStack>
                                 <RadzenLabel Text="Precio" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
                             </RadzenStack>
                         </RadzenStack>
                         <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("lavado"))"
-                                      Style="margin-top: 20px;" />
+                                      Style="margin-top: 20px;" Disabled="isOrderRegistered" />
                     </RadzenStack>
                 </RadzenAccordionItem>
                 <RadzenAccordionItem Text="Planchados" class="accordion-item-custom">
@@ -69,20 +69,20 @@
                             <RadzenStack>
                                 <RadzenLabel Text="Cantidad" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="1" Min="0"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
                             </RadzenStack>
                             <RadzenStack>
                                 <RadzenLabel Text="Precio" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
                             </RadzenStack>
                         </RadzenStack>
                         <RadzenStack>
                             <RadzenLabel Text="Descripción" />
-                            <RadzenTextArea @bind-Value="orderDetailInfo.Description" />
+                            <RadzenTextArea @bind-Value="orderDetailInfo.Description" Disabled="isOrderRegistered" />
                         </RadzenStack>
                         <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("planchado"))"
-                                      Style="margin-top: 20px;" />
+                                      Style="margin-top: 20px;" Disabled="isOrderRegistered" />
                     </RadzenStack>
                 </RadzenAccordionItem>
                 <RadzenAccordionItem Text="Individual" class="accordion-item-custom">
@@ -90,23 +90,23 @@
                         <RadzenStack>
                             <RadzenLabel Text="Descripción" />
                             <RadzenAutoComplete InputAttributes="StaticElements.numericSelectAllAttributes"
-                                                @bind-Value="orderDetailInfo.Description" />
+                                                @bind-Value="orderDetailInfo.Description" Disabled="isOrderRegistered" />
                         </RadzenStack>
                         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceAround"
                                      Gap="20px">
                             <RadzenStack>
                                 <RadzenLabel Text="Cantidad" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="1" Min="0"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
                             </RadzenStack>
                             <RadzenStack>
                                 <RadzenLabel Text="Precio" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
                             </RadzenStack>
                         </RadzenStack>
                         <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("individual"))"
-                                      Style="margin-top: 20px;" />
+                                      Style="margin-top: 20px;" Disabled="isOrderRegistered" />
                     </RadzenStack>
                 </RadzenAccordionItem>
             </Items>
@@ -115,23 +115,29 @@
     </RadzenColumn>
     <RadzenColumn SizeMD="6" SizeXS="12">
         <OrderDetails orderDetails="@orderDetails" />
-        <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="true" />
+        <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="@(!isOrderRegistered)" />
 
     </RadzenColumn>
 </RadzenRow>
 
-<RadzenStack>
+<RadzenStack Style="margin-bottom: 30px;">
     <RadzenRow>
         <RadzenColumn SizeMD="6" SizeXS="12">
             <RadzenStack>
                 <RadzenLabel Style="font-size: 1.5rem;" Text="Comentarios" />
-                <RadzenTextArea @bind-Value="comments" />
+                <RadzenTextArea @bind-Value="comments" Disabled="isOrderRegistered" />
             </RadzenStack>
         </RadzenColumn>
     </RadzenRow>
 
-    
-    <RadzenButton Text="Registrar orden" Click="@RegistrarOrden" />
+    @if (!isOrderRegistered)
+    {
+        <RadzenButton Text="Registrar orden" Click="@RegistrarOrden" />
+    }
+    else
+    {
+        <RadzenButton Text="Reiniciar registro" Click="@RestartRegister" ButtonStyle="ButtonStyle.Secondary" />
+    }
 </RadzenStack>
 
 @code {
@@ -146,6 +152,7 @@
     private string clientName = string.Empty;
 
     private DateTimeOffset receivedDate = DateTimeOffset.Now;
+    private bool isOrderRegistered = false;
 
     private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
 
@@ -220,6 +227,7 @@ orderDetailInfo.Quantity));
         try
         {
             await registerOrderService.RegisterOrder(orderRequest);
+            isOrderRegistered = true;
             notificationService.Notify(NotificationSeverity.Success, "Orden registrada exitosamente");
         }
         catch (Exception ex)
@@ -282,13 +290,16 @@ orderDetailInfo.Quantity));
 
     private void RestartRegister()
     {
-        orderDetailInfo = new OrderDetailInfo();
+        orderDetailInfo = newOrderDetail(null);
         orderDetails = new List<OrderDetail>();
         client = new Client(String.Empty, String.Empty);
         clientSuggestions = Array.Empty<Client>();
         clientName = string.Empty;
         selectedClientItem = null;
+        comments = string.Empty;
+        receivedDate = DateTimeOffset.Now;
         paymentDetailsDTO = new PaymentDetailsDTO();
+        isOrderRegistered = false;
     }
 
     private static ImmutableDictionary<string, string> TipoServicioIndex = ImmutableDictionary.CreateRange(new Dictionary<string, string>

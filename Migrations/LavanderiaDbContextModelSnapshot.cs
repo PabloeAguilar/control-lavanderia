@@ -65,7 +65,7 @@ namespace controllavanderia.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("Configuration");
+                    b.ToTable("Configurations");
                 });
 
             modelBuilder.Entity("Models.Location", b =>

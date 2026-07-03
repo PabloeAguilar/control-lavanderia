@@ -9,7 +9,7 @@
     }
     <RadzenLabel Text=@String.Concat("Folio: ", Order.Folio) />
     <RadzenLabel
-    Text="@String.Concat("Entregado: ", Order.DeliveryDate.HasValue ? Order.DeliveryDate.Value.ToString("dd/MM/yyyy") : "PENDIENTE")" />
+    Text="@String.Concat("Entregado: ", Order.DeliveryDate.HasValue ? Order.DeliveryDate.Value.ToLocalTime().ToString("dd/MM/yyyy") : "PENDIENTE")" />
 
 }
 

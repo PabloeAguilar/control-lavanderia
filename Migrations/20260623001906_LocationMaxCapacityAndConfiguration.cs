@@ -19,7 +19,7 @@ namespace controllavanderia.Migrations
                 defaultValue: 0);
 
             migrationBuilder.CreateTable(
-                name: "Configurations",
+                name: "Configuration",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -29,12 +29,12 @@ namespace controllavanderia.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Configurations", x => x.Id);
+                    table.PrimaryKey("PK_Configuration", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Configurations_Key",
-                table: "Configurations",
+                name: "IX_Configuration_Key",
+                table: "Configuration",
                 column: "Key",
                 unique: true);
         }
@@ -43,7 +43,7 @@ namespace controllavanderia.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Configurations");
+                name: "Configuration");
 
             migrationBuilder.DropColumn(
                 name: "MaxCapacity",

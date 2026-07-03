@@ -28,6 +28,25 @@ builder.Services.AddScoped<ConfigurationsService>();
 
 var app = builder.Build();
 
+// Apply pending EF Core migrations automatically at startup.
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<LavanderiaDbContext>>();
+
+    try
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+        await dbContext.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while applying database migrations.");
+        throw;
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
