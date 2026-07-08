@@ -53,7 +53,7 @@
             <RadzenDataGridColumn TItem="OrderMovement" Property="Date" 
                                   Title="Fecha">
                 <Template Context="data">
-                    @data.Date.ToString("g")
+                    @data.Date.ToLocalTime().ToString("g")
                 </Template>
                 <EditTemplate Context="data">
                     <RadzenDatePicker @bind-Value="data.Date" Style="width:100%" />
