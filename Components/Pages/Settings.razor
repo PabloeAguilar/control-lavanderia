@@ -1,0 +1,248 @@
+@page "/settings"
+@rendermode InteractiveServer
+@using Services
+@using Models
+@inject SuggestionsService SuggestionsService
+@inject ConfigurationsService ConfigurationsService
+@inject NotificationService NotificationService
+
+<div class="settings-container">
+    <h1>Configuración del Sistema</h1>
+
+    <div class="settings-tabs">
+        <!-- Tabs Navigation -->
+        <div class="tabs-header">
+            <button class="tab-btn @(activeTab == "ticket" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("ticket")'>
+                Configuraciones de Ticket
+            </button>
+            <button class="tab-btn @(activeTab == "suggestions" ? "active" : "")" 
+                    @onclick='() => SetActiveTab("suggestions")'>
+                Sugerencias
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tabs-content">
+            <!-- Configuraciones de Ticket -->
+            @if (activeTab == "ticket")
+            {
+                <div class="tab-pane">
+                    <h2>Configuraciones de Ticket</h2>
+                    
+                    @if (isLoadingConfigs)
+                    {
+                        <div class="loading">Cargando configuraciones...</div>
+                    }
+                    else if (configurations.Count == 0)
+                    {
+                        <div class="empty-state">
+                            <p>No hay configuraciones disponibles</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="config-grid">
+                            @foreach (var config in configurations)
+                            {
+                                <div class="config-card">
+                                    <div class="config-header">
+                                        <label class="config-key">@config.Key</label>
+                                    </div>
+                                    <div class="config-body">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               @bind="config.Value"
+                                               placeholder="Ingrese valor"
+                                               @onblur="() => SaveConfiguration(config)" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Sugerencias -->
+            @if (activeTab == "suggestions")
+            {
+                <div class="tab-pane">
+                    <h2>Sugerencias</h2>
+                    
+                    @if (isLoadingSuggestions)
+                    {
+                        <div class="loading">Cargando sugerencias...</div>
+                    }
+                    else if (suggestions.Count == 0)
+                    {
+                        <div class="empty-state">
+                            <p>No hay sugerencias disponibles</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="suggestions-grid">
+                            @foreach (var suggestion in suggestions)
+                            {
+                                <div class="suggestion-card">
+                                    <div class="suggestion-header">
+                                        <h3>@suggestion.Name</h3>
+                                        <span class="badge badge-info">@suggestion.Key</span>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(suggestion.Description))
+                                    {
+                                        <p class="suggestion-description">@suggestion.Description</p>
+                                    }
+                                    
+                                    <div class="suggestion-body">
+                                        <div class="price-group">
+                                            <label>Precio (entero):</label>
+                                            <div class="price-input-group">
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       @bind="suggestion.Price"
+                                                       @bind:event="onchange"
+                                                       @onblur="() => SaveSuggestion(suggestion)"
+                                                       step="1"
+                                                       placeholder="0" />
+                                                <button class="btn-save" @onclick="() => SaveSuggestion(suggestion)">
+                                                    ✓ Guardar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string activeTab = "ticket";
+    private List<Configuration> configurations = new();
+    private List<Suggestion> suggestions = new();
+    private bool isLoadingConfigs = true;
+    private bool isLoadingSuggestions = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadConfigurations();
+        await LoadSuggestions();
+    }
+
+    private async Task LoadConfigurations()
+    {
+        try
+        {
+            isLoadingConfigs = true;
+            configurations = await ConfigurationsService.GetAllVisibleConfigurations();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = "No se pudieron cargar las configuraciones",
+                Duration = 4000
+            });
+            Console.WriteLine($"Error loading configurations: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingConfigs = false;
+        }
+    }
+
+    private async Task LoadSuggestions()
+    {
+        try
+        {
+            isLoadingSuggestions = true;
+            suggestions = await SuggestionsService.GetAllSuggestions();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = "No se pudieron cargar las sugerencias",
+                Duration = 4000
+            });
+            Console.WriteLine($"Error loading suggestions: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingSuggestions = false;
+        }
+    }
+
+    private async Task SaveConfiguration(Configuration config)
+    {
+        try
+        {
+            await ConfigurationsService.UpdateConfiguration(config.Id, config.Value);
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Éxito",
+                Detail = $"Configuración '{config.Key}' actualizada",
+                Duration = 3000
+            });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = "No se pudo guardar la configuración",
+                Duration = 4000
+            });
+            Console.WriteLine($"Error saving configuration: {ex.Message}");
+        }
+    }
+
+    private async Task SaveSuggestion(Suggestion suggestion)
+    {
+        try
+        {
+            await SuggestionsService.UpdateSuggestion(suggestion.Id, suggestion.Price);
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Éxito",
+                Detail = $"Sugerencia '{suggestion.Name}' actualizada",
+                Duration = 3000
+            });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = "No se pudo guardar la sugerencia",
+                Duration = 4000
+            });
+            Console.WriteLine($"Error saving suggestion: {ex.Message}");
+        }
+        
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+        Console.WriteLine($"Active tab set to: {activeTab}");
+    }
+}
+
+<style>
+
+</style>

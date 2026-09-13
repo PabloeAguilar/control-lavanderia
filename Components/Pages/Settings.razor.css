@@ -1,0 +1,369 @@
+    .settings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .settings-container h1 {
+        margin-bottom: 30px;
+        color: #333;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .settings-tabs {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .tabs-header {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e9ecef;
+        background: #f8f9fa;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 16px 20px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        color: #666;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        min-width: 150px;
+    }
+
+    .tab-btn:hover {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .tab-btn.active {
+        color: #007bff;
+        border-bottom-color: #007bff;
+        background: white;
+    }
+
+    .tabs-content {
+        padding: 30px;
+        min-height: 400px;
+    }
+
+    .tab-pane h2 {
+        margin-bottom: 25px;
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-size: 16px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state p {
+        font-size: 16px;
+    }
+
+    /* Configuraciones Grid */
+    .config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .config-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .config-card:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        border-color: #dee2e6;
+    }
+
+    .config-header {
+        margin-bottom: 15px;
+    }
+
+    .config-key {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .config-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-control {
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Sugerencias Grid */
+    .suggestions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .suggestion-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .suggestion-card:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        border-color: #dee2e6;
+        transform: translateY(-2px);
+    }
+
+    .suggestion-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .suggestion-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 18px;
+        font-weight: 600;
+        flex: 1;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-info {
+        background: #e7f3ff;
+        color: #0056b3;
+    }
+
+    .suggestion-description {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+        font-style: italic;
+    }
+
+    .suggestion-body {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .price-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .price-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .price-input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .price-input-group input[type="number"] {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-save {
+        padding: 10px 16px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .btn-save:hover {
+        background: #218838;
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-save:active {
+        transform: scale(0.98);
+    }
+
+    /* Responsivo - Tablets */
+    @media (max-width: 768px) {
+        .settings-container {
+            padding: 15px;
+        }
+
+        .settings-container h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .tabs-header {
+            flex-direction: column;
+        }
+
+        .tab-btn {
+            min-width: auto;
+            border-bottom: none;
+            border-left: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            border-left-color: #007bff;
+            border-bottom-color: transparent;
+        }
+
+        .tabs-content {
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        .tab-pane h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .config-grid,
+        .suggestions-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .config-card,
+        .suggestion-card {
+            padding: 15px;
+        }
+
+        .price-input-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-save {
+            width: 100%;
+        }
+    }
+
+    /* Responsivo - Mobile */
+    @media (max-width: 480px) {
+        .settings-container {
+            padding: 10px;
+            min-height: auto;
+        }
+
+        .settings-container h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            padding: 12px 15px;
+            font-size: 14px;
+        }
+
+        .tabs-content {
+            padding: 15px;
+        }
+
+        .tab-pane h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .config-card,
+        .suggestion-card {
+            padding: 12px;
+        }
+
+        .suggestion-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .suggestion-header h3 {
+            width: 100%;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 3px 10px;
+        }
+
+        .form-control {
+            font-size: 16px;
+            padding: 12px;
+        }
+
+        .price-input-group input[type="number"] {
+            font-size: 16px;
+            padding: 12px;
+        }
+
+        .btn-save {
+            padding: 12px;
+            font-size: 13px;
+        }
+    }

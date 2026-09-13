@@ -25,6 +25,7 @@ builder.Services.AddScoped<ClientsService>();
 builder.Services.AddScoped<RegisterOrderService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ConfigurationsService>();
+builder.Services.AddScoped<SuggestionsService>();
 
 var app = builder.Build();
 

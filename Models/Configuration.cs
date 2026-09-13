@@ -12,5 +12,7 @@ namespace Models
         public string Key { get; set; } = string.Empty;
         [Required]
         public string Value { get; set; } = string.Empty;
+        [Required]
+        public bool ShowInSettings { get; set; } = true;
     }
 }

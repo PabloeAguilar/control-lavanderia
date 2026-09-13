@@ -11,7 +11,7 @@ namespace controllavanderia.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.InsertData(
-                table: "Configuration",
+                table: "Configurations",
                 columns: ["Key", "Value"],
                 values: new object[,] {
                     { "PrinterIp", "" },
@@ -29,7 +29,7 @@ namespace controllavanderia.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DeleteData(
-                table: "Configuration",
+                table: "Configurations",
                 keyColumn: "Key",
                 keyValues: ["PrinterIp", "BusinessTittle", "BusinessRegimen", "BusinessAddress", "BusinessPhone", "BusinessDays", "BusinessMessage"]);
         }

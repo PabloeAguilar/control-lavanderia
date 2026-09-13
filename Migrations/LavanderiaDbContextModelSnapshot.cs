@@ -56,6 +56,9 @@ namespace controllavanderia.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("ShowInSettings")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("text");
