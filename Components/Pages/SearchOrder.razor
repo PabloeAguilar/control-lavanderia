@@ -8,6 +8,7 @@
 @inject ClientsService ClientsService
 @inject DialogService dialogService
 @inject NotificationService notificationService
+@inject PrintService printService
 
 
 @* TODO: Requires revision for on load filtering in auto complete *@
@@ -21,14 +22,8 @@
     <RadzenColumn SizeMD="6" SizeXS="12">
         <RadzenStack Style="margin-bottom: 20px;">
             <RadzenLabel Text="Cliente" />
-            <RadzenAutoComplete @bind-Value="clientName"
-                                Data="@clientSuggestions"
-                                TextProperty="@nameof(Client.Name)"
-                                Placeholder="Cliente"
-                                Change="OnClientChangedAsync"
-                                OpenOnFocus="true"
-                                MinLength="3"
-                                FilterDelay="400"
+            <RadzenAutoComplete @bind-Value="clientName" Data="@clientSuggestions" TextProperty="@nameof(Client.Name)"
+                                Placeholder="Cliente" Change="OnClientChangedAsync" OpenOnFocus="true" MinLength="3" FilterDelay="400"
                                 FilterOperator="StringFilterOperator.Contains"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
         </RadzenStack>
@@ -73,6 +68,10 @@
         @if (selectedOrder != null)
         {
             <RadzenStack>
+                <OrderDetails Order="@selectedOrder" orderDetails="@selectedOrder.OrderDetails" folio="@selectedOrder.Folio"
+                              IsEditable="true" IsReadOnly="@(!CanManageSelectedOrder)" OnEditRequested="OpenEditOrderDetailDialog" />
+                <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="false" />
+
                 <RadzenRow>
                     <RadzenColumn SizeMD="6" SizeXS="12">
                         <RadzenButton Text="Gestionar orden" Icon="assignment_turned_in" ButtonStyle="ButtonStyle.Success"
@@ -81,9 +80,12 @@
                     </RadzenColumn>
                 </RadzenRow>
 
-                <OrderDetails Order="@selectedOrder" orderDetails="@selectedOrder.OrderDetails" folio="@selectedOrder.Folio" IsEditable="true"
-                              IsReadOnly="@(!CanManageSelectedOrder)" OnEditRequested="OpenEditOrderDetailDialog" />
-                <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="false" />
+                <RadzenRow>
+                    <RadzenColumn SizeMD="6" SizeXS="12">
+                        <RadzenButton Text="Imprimir ticket" Icon="assignment_turned_in" ButtonStyle="ButtonStyle.Success"
+                                      IsBusy="@isDelivering" Click="PrintTicket" Style="width: 100%;" />
+                    </RadzenColumn>
+                </RadzenRow>
             </RadzenStack>
         }
         else
@@ -273,4 +275,15 @@
 
     }
 
+    private async Task PrintTicket()
+    {
+        if (selectedOrder is null)
+            return;
+        Console.WriteLine("MAndando impresión");
+        PrintOrderRequest printOrderRequest = new (){
+            Order = selectedOrder
+        };
+        bool printed = await printService.PrintOrder(printOrderRequest);
+
+    }
 }

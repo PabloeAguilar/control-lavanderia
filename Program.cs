@@ -26,6 +26,7 @@ builder.Services.AddScoped<RegisterOrderService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ConfigurationsService>();
 builder.Services.AddScoped<SuggestionsService>();
+builder.Services.AddSingleton<PrintService>();
 
 var app = builder.Build();
 
