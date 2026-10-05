@@ -3,8 +3,11 @@ using control_lavanderia.Components.Data;
 using Microsoft.EntityFrameworkCore;
 using Radzen;
 using Services;
+using System.Globalization;
 
-
+var culture = new CultureInfo("es-MX");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
 
 var builder = WebApplication.CreateBuilder(args);
 
