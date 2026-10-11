@@ -232,6 +232,39 @@ namespace controllavanderia.Migrations
                     b.ToTable("OrderMovements");
                 });
 
+            modelBuilder.Entity("Models.Picture", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("OrderDetailId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Rute")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("SavedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderDetailId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Pictures");
+                });
+
             modelBuilder.Entity("Models.Profile", b =>
                 {
                     b.Property<int>("Id")
@@ -345,6 +378,23 @@ namespace controllavanderia.Migrations
                     b.Navigation("Location");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Models.Picture", b =>
+                {
+                    b.HasOne("Models.OrderDetail", "OrderDetail")
+                        .WithMany()
+                        .HasForeignKey("OrderDetailId");
+
+                    b.HasOne("Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("OrderDetail");
                 });
 
             modelBuilder.Entity("Models.Profile", b =>
