@@ -215,7 +215,7 @@ orderDetailInfo.Quantity));
 
         client.Name = clientName;
 
-        Order newOrder = new Order(comments, null, "Folio" + DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        Order newOrder = new Order(comments, null);
         RegisterOrderRequest orderRequest = new()
         {
             Client = client,

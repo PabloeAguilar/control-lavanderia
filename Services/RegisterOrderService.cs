@@ -39,7 +39,14 @@ namespace Services
             orderRequest.Order.ReceivedDate = orderRequest.ReceivedDate.ToUniversalTime();
             orderRequest.Order.Adelanto = orderRequest.PaymentDetails.Adelanto;
             orderRequest.Order.OrderDetails = orderRequest.OrderDetails;
+            // Folio temporal único para no chocar con el índice único antes de
+            // conocer el Id autogenerado por la base de datos.
+            orderRequest.Order.Folio = Guid.NewGuid().ToString();
             _context.Orders.Add(orderRequest.Order);
+            await _context.SaveChangesAsync();
+
+            // El folio final es el Id con ceros a la izquierda hasta 7 dígitos.
+            orderRequest.Order.Folio = orderRequest.Order.Id.ToString("D7");
             await _context.SaveChangesAsync();
         }
     }

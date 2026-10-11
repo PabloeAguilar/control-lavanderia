@@ -4,7 +4,7 @@ using Services;
 
 namespace Models
 {
-    public class Order(string? comments, int? idCurrentLocation, string folio)
+    public class Order(string? comments, int? idCurrentLocation)
     {
         [Required]
         [Key]
@@ -14,7 +14,7 @@ namespace Models
         [ForeignKey("Client")]
         public int IdCliente { get; set; }
         [Required]
-        public string Folio { get; set; } = folio;
+        public string Folio { get; set; } = string.Empty;
         [Required]
         public DateTimeOffset RegisterDate { get; set; } = DateTimeOffset.UtcNow;
         [Required]
