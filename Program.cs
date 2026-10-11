@@ -63,6 +63,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Sirve archivos estáticos creados en tiempo de ejecución (p. ej. fotos subidas en wwwroot/Pictures),
+// ya que MapStaticAssets solo expone los archivos presentes en tiempo de compilación.
+app.UseStaticFiles();
 
 app.UseAntiforgery();
 

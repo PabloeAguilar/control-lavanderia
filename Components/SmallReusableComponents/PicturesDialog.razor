@@ -1,0 +1,171 @@
+@using Models
+@using Services
+@inject DialogService dialogService
+@inject NotificationService notificationService
+@inject PicturesService picturesService
+
+<RadzenStack Gap="12px" Style="padding: 4px;">
+
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn SizeMD="6" SizeXS="12" Style="margin-bottom: 8px;">
+            <RadzenText TextStyle="TextStyle.H6" Style="margin: 0;">
+                @($"Fotos{(string.IsNullOrWhiteSpace(Folio) ? string.Empty : $" · {Folio}")}")
+            </RadzenText>
+        </RadzenColumn>
+        <RadzenColumn SizeMD="6" SizeXS="12" Style="margin-bottom: 8px; text-align: right;">
+            <div class="picture-upload-wrapper @(isUploading ? "is-uploading" : string.Empty)">
+                <InputFile OnChange="OnFileSelected" accept="image/*" class="picture-upload" />
+            </div>
+        </RadzenColumn>
+    </RadzenRow>
+
+    @if (isLoading)
+    {
+        <RadzenStack AlignItems="AlignItems.Center" Style="padding: 24px 0;">
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </RadzenStack>
+    }
+    else if (pictures.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info" ShowCloseButton="false" AllowZoom="false"
+                     Text="Esta orden aún no tiene fotos. Usa el botón para subir la primera." />
+    }
+    else
+    {
+        <div class="picture-grid">
+            @foreach (var picture in pictures)
+            {
+                var currentPicture = picture;
+                <div class="picture-item">
+                    <div class="picture-delete">
+                        <RadzenButton Icon="delete" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Danger"
+                                      Style="padding: 2px; line-height: 1;" Disabled="@isDeleting"
+                                      title="Eliminar foto" Click="@(() => ConfirmDeleteAsync(currentPicture))" />
+                    </div>
+                    <img class="picture-thumb" src="@GetImageUrl(currentPicture)" alt="Foto de la orden"
+                         @onclick="() => OpenFullscreen(currentPicture)" />
+                </div>
+            }
+        </div>
+    }
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
+        <RadzenButton Text="Cerrar" ButtonStyle="ButtonStyle.Light" Click="CloseDialog" />
+    </RadzenStack>
+</RadzenStack>
+
+@if (fullscreenPicture is not null)
+{
+    <div class="picture-fullscreen" @onclick="CloseFullscreen">
+        <div class="picture-fullscreen-close">
+            <RadzenButton Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
+                          title="Cerrar" Click="CloseFullscreen" />
+        </div>
+        <img class="picture-fullscreen-img" src="@GetImageUrl(fullscreenPicture)" alt="Foto de la orden" />
+    </div>
+}
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+    [Parameter] public int? OrderDetailId { get; set; }
+    [Parameter] public string? Folio { get; set; }
+
+    private const long MaxFileSize = 15 * 1024 * 1024;
+
+    private List<Picture> pictures = new();
+    private Picture? fullscreenPicture;
+    private bool isLoading = true;
+    private bool isUploading;
+    private bool isDeleting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadPicturesAsync();
+    }
+
+    private async Task ReloadPicturesAsync()
+    {
+        isLoading = true;
+
+        try
+        {
+            pictures = OrderDetailId.HasValue
+                ? await picturesService.GetPicturesByOrderDetailAsync(OrderDetailId.Value)
+                : await picturesService.GetPicturesByOrderAsync(OrderId);
+        }
+        catch
+        {
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible cargar las fotos");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is null)
+            return;
+
+        try
+        {
+            isUploading = true;
+
+            await using var stream = file.OpenReadStream(MaxFileSize);
+            await picturesService.SavePictureAsync(OrderId, stream, file.Name, OrderDetailId);
+
+            notificationService.Notify(NotificationSeverity.Success, "Foto subida correctamente");
+            await ReloadPicturesAsync();
+        }
+        catch
+        {
+            notificationService.Notify(NotificationSeverity.Error,
+                "No fue posible subir la foto. Verifica el formato y el tamaño (máx. 15 MB).");
+        }
+        finally
+        {
+            isUploading = false;
+        }
+    }
+
+    private async Task ConfirmDeleteAsync(Picture picture)
+    {
+        var confirmed = await dialogService.Confirm(
+            "¿Deseas eliminar esta foto?",
+            "Eliminar foto",
+            new ConfirmOptions
+            {
+                OkButtonText = "Eliminar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (confirmed != true)
+            return;
+
+        try
+        {
+            isDeleting = true;
+            await picturesService.SoftDeleteAsync(picture.Id);
+            notificationService.Notify(NotificationSeverity.Success, "Foto eliminada");
+            await ReloadPicturesAsync();
+        }
+        catch
+        {
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible eliminar la foto");
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+
+    private void OpenFullscreen(Picture picture) => fullscreenPicture = picture;
+
+    private void CloseFullscreen() => fullscreenPicture = null;
+
+    private static string GetImageUrl(Picture picture) => "/" + picture.Rute.TrimStart('/');
+
+    private void CloseDialog() => dialogService.Close();
+}

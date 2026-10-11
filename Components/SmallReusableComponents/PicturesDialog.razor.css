@@ -1,0 +1,93 @@
+.picture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.picture-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f0f0f0;
+    cursor: pointer;
+}
+
+.picture-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.15s ease;
+}
+
+.picture-item:hover .picture-thumb {
+    transform: scale(1.05);
+}
+
+.picture-delete {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 2;
+}
+
+/* Contenedor del input de archivo estilizado como botón. */
+.picture-upload-wrapper.is-uploading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.picture-upload-wrapper ::deep input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    font-size: 0.8125rem;
+    color: #555;
+    cursor: pointer;
+}
+
+.picture-upload-wrapper ::deep input[type="file"]::file-selector-button {
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 14px;
+    margin-right: 8px;
+    background-color: #2e7d32;
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+}
+
+.picture-upload-wrapper ::deep input[type="file"]::file-selector-button:hover {
+    background-color: #1b5e20;
+}
+
+/* Visor de pantalla completa. */
+.picture-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.92);
+    cursor: zoom-out;
+}
+
+.picture-fullscreen-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.picture-fullscreen-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}

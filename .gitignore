@@ -40,3 +40,7 @@ appsettings.Local.json
 
 # Node (if frontend tooling is added)
 node_modules/
+
+
+#Pictures taken in runtime
+wwwroot/Pictures
