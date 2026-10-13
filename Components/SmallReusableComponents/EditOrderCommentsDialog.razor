@@ -1,0 +1,99 @@
+@using Models
+@using Services
+@using Utilities
+@inject DialogService dialogService
+@inject NotificationService notificationService
+@inject OrdersService ordersService
+
+<RadzenStack Gap="12px" Style="padding: 8px;">
+    @if (isLoading)
+    {
+        <RadzenStack AlignItems="AlignItems.Center" Style="padding: 16px 0;">
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </RadzenStack>
+    }
+    else if (order is null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Text="No se encontro la orden." />
+        <RadzenButton Text="Cerrar" ButtonStyle="ButtonStyle.Light" Click="CloseDialog" />
+    }
+    else
+    {
+        <RadzenStack Gap="8px">
+            <RadzenLabel Text="Comentarios" />
+            <RadzenTextArea @bind-Value="comments" Rows="3" Placeholder="Comentarios de la orden"
+                            Style="width: 100%;" />
+
+            <RadzenLabel Text="Adelanto" />
+            <RadzenNumeric TValue="int" Step="1" Min="0" Max="@total" @bind-Value="adelanto"
+                           InputAttributes="StaticElements.numericSelectAllAttributes" Style="width: 100%;" />
+            <RadzenText TextStyle="TextStyle.Caption" Text="@($"Total de la orden: {total}")" />
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End"
+                     Gap="8px" Wrap="FlexWrap.Wrap">
+            <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="CloseDialog" />
+            <RadzenButton Text="Guardar cambios" ButtonStyle="ButtonStyle.Primary" IsBusy="isSaving"
+                          Click="SaveChanges" />
+        </RadzenStack>
+    }
+</RadzenStack>
+
+@code {
+    [Parameter]
+    public int OrderId { get; set; }
+
+    private Order? order;
+    private string? comments;
+    private int adelanto;
+    private int total;
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        order = await ordersService.GetOrderById(OrderId);
+        isLoading = false;
+
+        if (order is null)
+            return;
+
+        comments = order.Comments;
+        adelanto = order.Adelanto;
+        total = order.OrderDetails?.Sum(od => od.Total) ?? 0;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (order is null)
+            return;
+
+        if (adelanto < 0)
+        {
+            notificationService.Notify(NotificationSeverity.Warning, "El adelanto no puede ser negativo");
+            return;
+        }
+
+        try
+        {
+            isSaving = true;
+            await ordersService.UpdateCommentsAndAdelanto(order.Id, comments, adelanto);
+
+            notificationService.Notify(NotificationSeverity.Success, "Orden actualizada correctamente");
+            dialogService.Close(true);
+        }
+        catch
+        {
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar la orden");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CloseDialog()
+    {
+        dialogService.Close(false);
+    }
+}

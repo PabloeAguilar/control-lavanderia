@@ -76,6 +76,28 @@ namespace Services
             return order;
         }
 
+        public async Task<Order> UpdateCommentsAndAdelanto(int orderId, string? comments, int adelanto)
+        {
+            await using var _context = await context.CreateDbContextAsync();
+            var order = await _context.Orders
+                .FirstOrDefaultAsync(order => order.Id == orderId);
+
+            if (order is null)
+                throw new Exception("Order not found");
+
+            ValidateOrderCanBeManaged(order);
+
+            if (adelanto < 0)
+                throw new Exception("Adelanto cannot be negative");
+
+            order.Comments = string.IsNullOrWhiteSpace(comments) ? null : comments.Trim();
+            order.Adelanto = adelanto;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+
+            return order;
+        }
+
         private static void ValidateOrderCanBeManaged(Order order)
         {
             if (order.CancelDate.HasValue)

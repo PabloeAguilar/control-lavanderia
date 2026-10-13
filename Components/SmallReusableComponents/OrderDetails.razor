@@ -1,4 +1,5 @@
 @using Models
+@inject DialogService dialogService
 
 
 @if (Order is not null)
@@ -14,8 +15,15 @@
         <RadzenLabel Text=@String.Concat("Comentarios: ", Order.Comments) />
     </RadzenRow>
 
-    
-
+    @if (IsEditable)
+    {
+        <RadzenRow JustifyContent="JustifyContent.Left" Style="margin-top: 8px;">
+            <RadzenColumn SizeMD="6" SizeXS="12">
+                <RadzenButton Text="Editar comentarios y adelanto" Icon="edit" ButtonStyle="ButtonStyle.Light"
+                              Disabled="@IsReadOnly" Click="OpenEditOrderCommentsDialog" Style="width: 100%;" />
+            </RadzenColumn>
+        </RadzenRow>
+    }
 }
 
 
@@ -80,5 +88,31 @@
     public EventCallback<OrderDetail> OnEditRequested { get; set; }
 
     [Parameter]
+    public EventCallback<int> OnOrderUpdated { get; set; }
+
+    [Parameter]
     public required Order Order { get; set; }
+
+    private async Task OpenEditOrderCommentsDialog()
+    {
+        if (Order is null || !IsEditable || IsReadOnly)
+            return;
+
+        var updated = await dialogService.OpenAsync<EditOrderCommentsDialog>(
+            "Editar comentarios y adelanto",
+            new Dictionary<string, object?>
+            {
+                { nameof(EditOrderCommentsDialog.OrderId), Order.Id }
+            },
+            new DialogOptions
+            {
+                Width = "min(520px, 92vw)",
+                CloseDialogOnEsc = true
+            });
+
+        if (updated is true)
+        {
+            await OnOrderUpdated.InvokeAsync(Order.Id);
+        }
+    }
 }

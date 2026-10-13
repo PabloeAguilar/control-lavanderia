@@ -93,7 +93,8 @@
                 </RadzenRow> *@
 
                 <OrderDetails Order="@selectedOrder" orderDetails="@selectedOrder.OrderDetails" folio="@selectedOrder.Folio"
-                              IsEditable="true" IsReadOnly="@(!CanManageSelectedOrder)" OnEditRequested="OpenEditOrderDetailDialog" />
+                              IsEditable="true" IsReadOnly="@(!CanManageSelectedOrder)" OnEditRequested="OpenEditOrderDetailDialog"
+                              OnOrderUpdated="OnOrderUpdated" />
                 <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="false" />
 
                 <RadzenRow>
@@ -214,6 +215,12 @@
 
         selectedOrder = await OrdersService.GetOrderById(selectedOrder.Id);
         UpdatePaymentDetails();
+    }
+
+    private async Task OnOrderUpdated(int orderId)
+    {
+        await RefreshSelectedOrder();
+        await RefreshOrders();
     }
 
     private async Task RefreshOrders()
