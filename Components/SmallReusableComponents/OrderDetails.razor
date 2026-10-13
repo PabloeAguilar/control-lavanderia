@@ -1,15 +1,20 @@
 @using Models
 
-<RadzenLabel Style="font-size: 1.5rem;" Text="Detalles de la orden" />
+
 @if (Order is not null)
 {
-    @if (Order.Client is not null)
-    {
-        <RadzenLabel Text=@String.Concat("Cliente: ", Order.Client.Name) />
-    }
-    <RadzenLabel Text=@String.Concat("Folio: ", Order.Folio) />
-    <RadzenLabel
-    Text="@String.Concat("Entregado: ", Order.DeliveryDate.HasValue ? Order.DeliveryDate.Value.ToLocalTime().ToString("dd/MM/yyyy") : "PENDIENTE")" />
+    <RadzenRow>
+        @if (Order.Client is not null)
+        {
+            <RadzenLabel Text=@String.Concat("Cliente: ", Order.Client.Name) />
+        }
+        <RadzenLabel Text=@String.Concat("Folio: ", Order.Folio) />
+        <RadzenLabel
+        Text="@String.Concat("Entregado: ", Order.DeliveryDate.HasValue ? Order.DeliveryDate.Value.ToLocalTime().ToString("dd/MM/yyyy") : "PENDIENTE")" />
+        <RadzenLabel Text=@String.Concat("Comentarios: ", Order.Comments) />
+    </RadzenRow>
+
+    
 
 }
 

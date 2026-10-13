@@ -12,13 +12,14 @@
 @inject ClientsService clientsService;
 @inject NotificationService notificationService;
 @inject ConfigurationsService configurationsService;
+@inject SuggestionsService suggestionsService;
 
 <HeadContent>
     <link href="CustomStyles.css" rel="stylesheet" />
 </HeadContent>
 
-<PageTitle>Registro de orden</PageTitle>
-<h1>Registro de orden</h1>
+<PageTitle>Registro de nota</PageTitle>
+<h1>Registro de nota</h1>
 
 <RadzenNotification />
 
@@ -51,12 +52,14 @@
                             <RadzenStack>
                                 <RadzenLabel Text="Cantidad" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="0.1" Min="0"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes"
+                                               Disabled="isOrderRegistered" />
                             </RadzenStack>
                             <RadzenStack>
                                 <RadzenLabel Text="Precio" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes"
+                                               Disabled="isOrderRegistered" />
                             </RadzenStack>
                         </RadzenStack>
                         <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("lavado"))"
@@ -69,12 +72,14 @@
                             <RadzenStack>
                                 <RadzenLabel Text="Cantidad" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="1" Min="0"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes"
+                                               Disabled="isOrderRegistered" />
                             </RadzenStack>
                             <RadzenStack>
                                 <RadzenLabel Text="Precio" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes"
+                                               Disabled="isOrderRegistered" />
                             </RadzenStack>
                         </RadzenStack>
                         <RadzenStack>
@@ -88,21 +93,26 @@
                 <RadzenAccordionItem Text="Individual" class="accordion-item-custom">
                     <RadzenStack>
                         <RadzenStack>
-                            <RadzenLabel Text="Descripción" />
-                            <RadzenAutoComplete InputAttributes="StaticElements.numericSelectAllAttributes"
-                                                @bind-Value="orderDetailInfo.Description" Disabled="isOrderRegistered" />
+                            <RadzenLabel Text="Pieza" />
+                            <RadzenAutoComplete @key="individualAutocompleteKey"
+                                                InputAttributes="StaticElements.numericSelectAllAttributes"
+                                                Data="suggestions" TextProperty="@nameof(Suggestion.Name)" OpenOnFocus
+                                                SelectedItemChanged="@AutocompleteOnChange" @bind-Value="orderDetailInfo.Description"
+                                                Disabled="isOrderRegistered" />
                         </RadzenStack>
                         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceAround"
                                      Gap="20px">
                             <RadzenStack>
                                 <RadzenLabel Text="Cantidad" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Quantity" Step="1" Min="0"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes"
+                                               Disabled="isOrderRegistered" />
                             </RadzenStack>
                             <RadzenStack>
                                 <RadzenLabel Text="Precio" />
                                 <RadzenNumeric @bind-Value="orderDetailInfo.Price" Step="1" Min="1"
-                                               InputAttributes="StaticElements.numericSelectAllAttributes" Disabled="isOrderRegistered" />
+                                               InputAttributes="StaticElements.numericSelectAllAttributes"
+                                               Disabled="isOrderRegistered" />
                             </RadzenStack>
                         </RadzenStack>
                         <RadzenButton Text="Agregar a la cuenta" Click="@(() => AgregarDetalleOrden("individual"))"
@@ -159,11 +169,16 @@
     private Configuration? ropaConfiguration;
     private Configuration? planchadoConfiguration;
 
+    private List<Suggestion> suggestions = new List<Suggestion>();
+
+    // Se incrementa para forzar la recreación del RadzenAutoComplete y limpiar su filtro interno.
+    private int individualAutocompleteKey = 0;
+
     private async Task LoadConfigurationsAsync()
     {
         ropaConfiguration = await configurationsService.GetConfiguration("PrecioLavado");
         planchadoConfiguration = await configurationsService.GetConfiguration("PrecioPlanchado");
-        Console.WriteLine($"Loaded configurations: Lavado={ropaConfiguration?.Value}, Planchado={planchadoConfiguration?.Value}");
+        suggestions = await suggestionsService.GetAllSuggestions();
     }
 
     private OrderDetailInfo newOrderDetail(string? index)
@@ -189,7 +204,7 @@
         await LoadConfigurationsAsync();
         orderDetailInfo = newOrderDetail(null);
 
-        
+
     }
 
     private void AgregarDetalleOrden(string tipoServicio)
@@ -199,7 +214,10 @@
 orderDetailInfo.Quantity));
         orderDetails = orderDetails.ToList();
         paymentDetailsDTO.Total += orderDetails.Last().Total ?? 0;
-        orderDetailInfo = newOrderDetail(TipoServicioIndex.TryGetValue(tipoServicio, out var index) ? index : null);
+        orderDetailInfo = newOrderDetail(TipoServicioIndex.TryGetValue(tipoServicio, out var index) ? index : null);;
+
+        // Fuerza la recreación del autocomplete para limpiar el texto/filtro interno.
+        individualAutocompleteKey++;
     }
 
 
@@ -288,6 +306,17 @@ orderDetailInfo.Quantity));
         }
     }
 
+    private void AutocompleteOnChange(dynamic args)
+    {
+        if (args != null)
+        {
+            Suggestion suggestion = (Suggestion)args;
+            orderDetailInfo.Price = suggestion.Price;
+            orderDetailInfo.Quantity = 1;
+        }
+        
+    }
+
     private void RestartRegister()
     {
         orderDetailInfo = newOrderDetail(null);
@@ -300,9 +329,13 @@ orderDetailInfo.Quantity));
         receivedDate = DateTimeOffset.Now;
         paymentDetailsDTO = new PaymentDetailsDTO();
         isOrderRegistered = false;
+
+        // Fuerza la recreación del autocomplete para limpiar el texto/filtro interno.
+        individualAutocompleteKey++;
     }
 
-    private static ImmutableDictionary<string, string> TipoServicioIndex = ImmutableDictionary.CreateRange(new Dictionary<string, string>
+    private static ImmutableDictionary<string, string> TipoServicioIndex = ImmutableDictionary.CreateRange(new
+Dictionary<string, string>
     {
         { "lavado", "0" },
         { "planchado", "1" },
