@@ -6,11 +6,11 @@ namespace Services
 {
     /// <summary>
     /// Servicio encargado de guardar, consultar y eliminar (soft delete) las fotografías
-    /// asociadas a una orden o a un detalle de orden.
+    /// asociadas a una nota o a un detalle de nota.
     /// </summary>
     /// <remarks>
     /// Los archivos se almacenan dentro de la carpeta <c>Pictures</c> de <c>wwwroot</c>,
-    /// creando, cuando es necesario, una subcarpeta con el folio de la orden.
+    /// creando, cuando es necesario, una subcarpeta con el folio de la nota.
     /// Toda la manipulación de rutas se realiza con <see cref="Path"/> y
     /// <see cref="Directory"/> para garantizar compatibilidad con Windows y Linux.
     /// </remarks>
@@ -37,12 +37,12 @@ namespace Services
 
         /// <summary>
         /// Guarda una fotografía en disco y registra el <see cref="Picture"/> en la base de datos.
-        /// Se crea la carpeta <c>Pictures</c> y la subcarpeta con el folio de la orden si no existen.
+        /// Se crea la carpeta <c>Pictures</c> y la subcarpeta con el folio de la nota si no existen.
         /// </summary>
-        /// <param name="orderId">Identificador de la orden a la que pertenece la foto.</param>
+        /// <param name="orderId">Identificador de la nota a la que pertenece la foto.</param>
         /// <param name="content">Flujo con el contenido binario de la imagen.</param>
         /// <param name="originalFileName">Nombre original del archivo (se usa solo para la extensión).</param>
-        /// <param name="orderDetailId">Identificador opcional del detalle de orden asociado.</param>
+        /// <param name="orderDetailId">Identificador opcional del detalle de nota asociado.</param>
         /// <param name="cancellationToken">Token de cancelación.</param>
         public async Task<Picture> SavePictureAsync(
             int orderId,
@@ -61,7 +61,7 @@ namespace Services
             var order = await context.Orders
                 .AsNoTracking()
                 .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken)
-                ?? throw new InvalidOperationException($"No se encontró la orden con Id {orderId}.");
+                ?? throw new InvalidOperationException($"No se encontró la nota con Id {orderId}.");
 
             if (orderDetailId.HasValue)
             {
@@ -71,7 +71,7 @@ namespace Services
 
                 if (!detailExists)
                     throw new InvalidOperationException(
-                        $"No se encontró el detalle con Id {orderDetailId.Value} para la orden {orderId}.");
+                        $"No se encontró el detalle con Id {orderDetailId.Value} para la nota {orderId}.");
             }
 
             var folderName = SanitizeFolderName(order.Folio);
@@ -110,16 +110,16 @@ namespace Services
             await context.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
-                "Foto {PictureId} guardada para la orden {OrderId} en {Rute}.",
+                "Foto {PictureId} guardada para la nota {OrderId} en {Rute}.",
                 picture.Id, orderId, relativeRute);
 
             return picture;
         }
 
         /// <summary>
-        /// Obtiene las fotografías asociadas a una orden.
+        /// Obtiene las fotografías asociadas a una nota.
         /// </summary>
-        /// <param name="orderId">Identificador de la orden.</param>
+        /// <param name="orderId">Identificador de la nota.</param>
         /// <param name="includeDeleted">Si es <c>true</c> incluye las fotografías eliminadas lógicamente.</param>
         public async Task<List<Picture>> GetPicturesByOrderAsync(
             int orderId,
@@ -139,9 +139,9 @@ namespace Services
         }
 
         /// <summary>
-        /// Obtiene las fotografías asociadas a un detalle de orden.
+        /// Obtiene las fotografías asociadas a un detalle de nota.
         /// </summary>
-        /// <param name="orderDetailId">Identificador del detalle de orden.</param>
+        /// <param name="orderDetailId">Identificador del detalle de nota.</param>
         /// <param name="includeDeleted">Si es <c>true</c> incluye las fotografías eliminadas lógicamente.</param>
         public async Task<List<Picture>> GetPicturesByOrderDetailAsync(
             int orderDetailId,
@@ -200,7 +200,7 @@ namespace Services
         }
 
         /// <summary>
-        /// Realiza un borrado lógico de todas las fotografías activas de una orden.
+        /// Realiza un borrado lógico de todas las fotografías activas de una nota.
         /// </summary>
         /// <returns>Cantidad de fotografías afectadas.</returns>
         public async Task<int> SoftDeleteByOrderAsync(

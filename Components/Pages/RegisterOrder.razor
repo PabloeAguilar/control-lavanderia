@@ -44,7 +44,7 @@
             </RadzenColumn>
         </RadzenRow>
 
-        <RadzenAccordion Expand="args => onToggleAccordionItem(args)">
+        <RadzenAccordion Expand="args => onToggleAccordionItem(args)" SelectedIndex="0">
             <Items>
                 <RadzenAccordionItem Text="Ropa" class="accordion-item-custom">
                     <RadzenStack>
@@ -142,7 +142,7 @@
 
     @if (!isOrderRegistered)
     {
-        <RadzenButton Text="Registrar orden" Click="@RegistrarOrden" />
+        <RadzenButton Text="Registrar nota" Click="@RegistrarOrden" />
     }
     else
     {
@@ -250,8 +250,8 @@ orderDetailInfo.Quantity));
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al registrar la orden: {ex.Message}");
-            notificationService.Notify(NotificationSeverity.Error, "Error al registrar la orden");
+            Console.WriteLine($"Error al registrar la nota: {ex.Message}");
+            notificationService.Notify(NotificationSeverity.Error, "Error al registrar la nota");
         }
     }
 

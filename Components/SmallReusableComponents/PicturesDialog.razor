@@ -28,7 +28,7 @@
     else if (pictures.Count == 0)
     {
         <RadzenAlert AlertStyle="AlertStyle.Info" ShowCloseButton="false" AllowZoom="false"
-                     Text="Esta orden aún no tiene fotos. Usa el botón para subir la primera." />
+                     Text="Esta nota aún no tiene fotos. Usa el botón para subir la primera." />
     }
     else
     {
@@ -42,7 +42,7 @@
                                       Style="padding: 2px; line-height: 1;" Disabled="@isDeleting"
                                       title="Eliminar foto" Click="@(() => ConfirmDeleteAsync(currentPicture))" />
                     </div>
-                    <img class="picture-thumb" src="@GetImageUrl(currentPicture)" alt="Foto de la orden"
+                    <img class="picture-thumb" src="@GetImageUrl(currentPicture)" alt="Foto de la nota"
                          @onclick="() => OpenFullscreen(currentPicture)" />
                 </div>
             }
@@ -61,7 +61,7 @@
             <RadzenButton Icon="close" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
                           title="Cerrar" Click="CloseFullscreen" />
         </div>
-        <img class="picture-fullscreen-img" src="@GetImageUrl(fullscreenPicture)" alt="Foto de la orden" />
+        <img class="picture-fullscreen-img" src="@GetImageUrl(fullscreenPicture)" alt="Foto de la nota" />
     </div>
 }
 

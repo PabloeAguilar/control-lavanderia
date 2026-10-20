@@ -15,8 +15,8 @@
 <RadzenDialog />
 <RadzenNotification />
 
-<PageTitle>Buscar orden</PageTitle>
-<h1>Buscar orden</h1>
+<PageTitle>Buscar Nota</PageTitle>
+<h1>Buscar nota</h1>
 
 <RadzenRow>
     <RadzenColumn SizeMD="6" SizeXS="12">
@@ -69,11 +69,11 @@
         {
             <RadzenStack>
 
-                <RadzenLabel Style="font-size: 1.5rem;" Text="Detalles de la orden" />
+                <RadzenLabel Style="font-size: 1.5rem;" Text="Detalles de la nota" />
                 
                 <RadzenRow>
                     <RadzenColumn SizeMD="6" SizeXS="12">
-                        <RadzenButton Text="Gestionar orden" Icon="assignment_turned_in" ButtonStyle="ButtonStyle.Success"
+                        <RadzenButton Text="Entregar ropa" Icon="assignment_turned_in" ButtonStyle="ButtonStyle.Success"
                                       Disabled="@(!CanManageSelectedOrder || isDelivering)" IsBusy="@isDelivering"
                                       Click="OpenManageOrderDialog" Style="width: 100%;" />
                     </RadzenColumn>
@@ -81,6 +81,11 @@
                     <RadzenColumn SizeMD="6" SizeXS="12">
                         <RadzenButton Text="Imprimir ticket" Icon="assignment_turned_in" ButtonStyle="ButtonStyle.Success"
                                       IsBusy="@isDelivering" Click="PrintTicket" Style="width: 100%;" />
+                    </RadzenColumn>
+
+                    <RadzenColumn SizeMD="6" SizeXS="12">
+                        <RadzenButton Text="Fotos" Icon="photo_library" ButtonStyle="ButtonStyle.Success"
+                                      Click="OpenPicturesDialog" Style="width: 100%;" />
                     </RadzenColumn>
                 </RadzenRow>
 
@@ -96,18 +101,18 @@
                               IsEditable="true" IsReadOnly="@(!CanManageSelectedOrder)" OnEditRequested="OpenEditOrderDetailDialog"
                               OnOrderUpdated="OnOrderUpdated" />
                 <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="false" />
-
+                @* 
                 <RadzenRow>
                     <RadzenColumn SizeMD="6" SizeXS="12">
                         <RadzenButton Text="Fotos" Icon="photo_library" ButtonStyle="ButtonStyle.Success"
                                       Click="OpenPicturesDialog" Style="width: 100%;" />
                     </RadzenColumn>
-                </RadzenRow>
+                </RadzenRow> *@
             </RadzenStack>
         }
         else
         {
-            <RadzenLabel Text="Seleccione una orden para ver los detalles." />
+            <RadzenLabel Text="Seleccione una nota para ver los detalles." />
         }
     </RadzenColumn>
 </RadzenRow>
@@ -149,7 +154,7 @@
         {
             isDelivering = true;
             var action = await dialogService.OpenAsync<OrderActionDialog>(
-                "Gestionar orden",
+                "Gestionar nota",
                 null,
                 new DialogOptions
                 {
@@ -176,7 +181,7 @@
         }
         catch
         {
-            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar el estado de la orden");
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar el estado de la nota");
         }
         finally
         {
@@ -190,7 +195,7 @@
             return;
 
         var updated = await dialogService.OpenAsync<EditOrderDetailDialog>(
-            "Modificar detalle de orden",
+            "Modificar detalle de nota",
             new Dictionary<string, object?>
             {
                 { nameof(EditOrderDetailDialog.OrderDetailId), orderDetail.Id }
@@ -317,7 +322,7 @@
             return;
 
         await dialogService.OpenAsync<PicturesDialog>(
-            "Fotos de la orden",
+            "Fotos de la nota",
             new Dictionary<string, object?>
             {
                 { nameof(PicturesDialog.OrderId), selectedOrder.Id },

@@ -14,20 +14,20 @@
     }
     else if (order is null)
     {
-        <RadzenAlert AlertStyle="AlertStyle.Danger" Text="No se encontro la orden." />
+        <RadzenAlert AlertStyle="AlertStyle.Danger" Text="No se encontro la nota." />
         <RadzenButton Text="Cerrar" ButtonStyle="ButtonStyle.Light" Click="CloseDialog" />
     }
     else
     {
         <RadzenStack Gap="8px">
             <RadzenLabel Text="Comentarios" />
-            <RadzenTextArea @bind-Value="comments" Rows="3" Placeholder="Comentarios de la orden"
+            <RadzenTextArea @bind-Value="comments" Rows="3" Placeholder="Comentarios de la nota"
                             Style="width: 100%;" />
 
             <RadzenLabel Text="Adelanto" />
             <RadzenNumeric TValue="int" Step="1" Min="0" Max="@total" @bind-Value="adelanto"
                            InputAttributes="StaticElements.numericSelectAllAttributes" Style="width: 100%;" />
-            <RadzenText TextStyle="TextStyle.Caption" Text="@($"Total de la orden: {total}")" />
+            <RadzenText TextStyle="TextStyle.Caption" Text="@($"Total de la nota: {total}")" />
         </RadzenStack>
 
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End"
@@ -84,7 +84,7 @@
         }
         catch
         {
-            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar la orden");
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar la nota");
         }
         finally
         {
