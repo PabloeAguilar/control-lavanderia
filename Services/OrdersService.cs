@@ -4,7 +4,7 @@ using Models;
 
 namespace Services
 {
-    public class OrdersService(IDbContextFactory<LavanderiaDbContext> context)
+    public class OrdersService(IDbContextFactory<LavanderiaDbContext> context, DataCacheService cache)
     {
         public async Task<List<Order>> GetLastOrders()
         {
@@ -55,6 +55,9 @@ namespace Services
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
 
+            // Actualizar el cache de órdenes del día (recibidas/entregadas).
+            await cache.RefreshOrderAsync(order.Id);
+
             return order;
         }
 
@@ -72,6 +75,9 @@ namespace Services
             order.CancelDate = DateTimeOffset.UtcNow;
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
+
+            // La orden cancelada deja de contar en los listados del día.
+            await cache.RefreshOrderAsync(order.Id);
 
             return order;
         }

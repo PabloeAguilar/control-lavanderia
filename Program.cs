@@ -21,6 +21,7 @@ builder.Services.AddDbContextFactory<LavanderiaDbContext>(options =>
 
 builder.Services.AddScoped<OrderNumberService>();
 builder.Services.AddHostedService<OrderNumberCacheCleanupService>();
+builder.Services.AddSingleton<DataCacheService>();
 builder.Services.AddScoped<OrdersService>();
 builder.Services.AddScoped<ControlPointService>();
 builder.Services.AddScoped<OrderDetailsService>();
