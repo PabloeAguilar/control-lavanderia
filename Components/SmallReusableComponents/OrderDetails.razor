@@ -29,7 +29,7 @@
 }
 
 
-<RadzenDataGrid Data="@orderDetails" TItem="OrderDetail" Responsive="true">
+<RadzenDataGrid EmptyText="No hay registros para mostrar" Data="@orderDetails" TItem="OrderDetail" Responsive="true">
     <Columns>
         <RadzenDataGridColumn TItem="OrderDetail" Property="Type" Title="Servicio">
             <Template Context="data">

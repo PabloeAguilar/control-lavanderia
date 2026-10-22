@@ -24,7 +24,7 @@
         </RadzenColumn>
     </RadzenRow>
 
-    <RadzenDataGrid TItem="OrderMovement" Data="@orderMovements" @ref="orderMovementGrid" RowUpdate="@OnUpdateRow" Responsive="true"
+    <RadzenDataGrid EmptyText="No hay registros para mostrar" TItem="OrderMovement" Data="@orderMovements" @ref="orderMovementGrid" RowUpdate="@OnUpdateRow" Responsive="true"
                     RowCreate="@OnCreateRow" EditMode="DataGridEditMode.Single">
         <Columns>
             <RadzenDataGridColumn TItem="OrderMovement" Property="Order.Client.Name" 
@@ -88,7 +88,7 @@
 }
 else
 {
-    <RadzenDataGrid TItem="Location" Data="@locations" RowClick="@OnLocationSelected">
+    <RadzenDataGrid EmptyText="No hay registros para mostrar" TItem="Location" Data="@locations" RowClick="@OnLocationSelected">
         <Columns>
             <RadzenDataGridColumn TItem="Location" Property="Name" Title="Ubicación" />
         </Columns>
