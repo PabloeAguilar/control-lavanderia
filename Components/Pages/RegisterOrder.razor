@@ -2,12 +2,13 @@
 @rendermode InteractiveServer
 
 
-@using Models
-@using Utilities
-@using DTOs
-@using control_lavanderia.Components.SmallReusableComponents
-@using Services
 @using System.Collections.Immutable
+@using DTOs
+@using Microsoft.AspNetCore.Mvc.Formatters
+@using Models
+@using Services
+@using Utilities
+@using control_lavanderia.Components.SmallReusableComponents
 @inject RegisterOrderService registerOrderService;
 @inject ClientsService clientsService;
 @inject NotificationService notificationService;
@@ -24,8 +25,14 @@
 <RadzenNotification />
 
 <RadzenRow>
-    <RadzenColumn SizeMD="6" SizeXS="12">
+    <RadzenColumn SizeLG="6" SizeXS="12">
         <RadzenRow Style="margin-bottom: 20px;">
+            <RadzenColumn SizeMD="6" SizeXS="12">
+                <RadzenStack>
+                    <RadzenLabel Style="font-size: 1.5rem;" Text="Fecha de recepción" />
+                    <RadzenDatePicker @bind-Value="receivedDate" Style="width:100%" Disabled="isOrderRegistered" />
+                </RadzenStack>
+            </RadzenColumn>
             <RadzenColumn SizeMD="6" SizeXS="12">
                 <RadzenStack>
                     <RadzenLabel Style="font-size: 1.5rem;" Text="Cliente" />
@@ -36,15 +43,9 @@
                                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Disabled="isOrderRegistered" />
                 </RadzenStack>
             </RadzenColumn>
-            <RadzenColumn SizeMD="6" SizeXS="12">
-                <RadzenStack>
-                    <RadzenLabel Style="font-size: 1.5rem;" Text="Fecha de recepción" />
-                    <RadzenDatePicker @bind-Value="receivedDate" Style="width:100%" Disabled="isOrderRegistered" />
-                </RadzenStack>
-            </RadzenColumn>
         </RadzenRow>
 
-        <RadzenAccordion Expand="args => onToggleAccordionItem(args)" SelectedIndex="0">
+        <RadzenAccordion Expand="args => onToggleAccordionItem(args)">
             <Items>
                 <RadzenAccordionItem Text="Ropa" class="accordion-item-custom">
                     <RadzenStack>
@@ -95,8 +96,8 @@
                         <RadzenStack>
                             <RadzenLabel Text="Pieza" />
                             <RadzenAutoComplete @key="individualAutocompleteKey"
-                                                InputAttributes="StaticElements.numericSelectAllAttributes"
-                                                Data="suggestions" TextProperty="@nameof(Suggestion.Name)" OpenOnFocus
+                                                InputAttributes="StaticElements.numericSelectAllAttributes" Data="suggestions"
+                                                TextProperty="@nameof(Suggestion.Name)" OpenOnFocus
                                                 SelectedItemChanged="@AutocompleteOnChange" @bind-Value="orderDetailInfo.Description"
                                                 Disabled="isOrderRegistered" />
                         </RadzenStack>
@@ -123,16 +124,19 @@
         </RadzenAccordion>
 
     </RadzenColumn>
-    <RadzenColumn SizeMD="6" SizeXS="12">
-        <OrderDetails orderDetails="@orderDetails" />
-        <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="@(!isOrderRegistered)" />
+    <RadzenColumn SizeLG="6" SizeXS="12">
+        <RadzenStack>
+            <RadzenLabel Style="font-size: 1.5rem;" Text="Detalles de la orden" />
+            <OrderDetails orderDetails="@orderDetails" />
+            <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="@(!isOrderRegistered)" />
+        </RadzenStack>
 
     </RadzenColumn>
 </RadzenRow>
 
 <RadzenStack Style="margin-bottom: 30px;">
     <RadzenRow>
-        <RadzenColumn SizeMD="6" SizeXS="12">
+        <RadzenColumn LG="6" SizeXS="12">
             <RadzenStack>
                 <RadzenLabel Style="font-size: 1.5rem;" Text="Comentarios" />
                 <RadzenTextArea @bind-Value="comments" Disabled="isOrderRegistered" />
@@ -161,7 +165,7 @@
     private object? selectedClientItem;
     private string clientName = string.Empty;
 
-    private DateTimeOffset receivedDate = DateTimeOffset.Now;
+    private DateTimeOffset receivedDate = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(-6));
     private bool isOrderRegistered = false;
 
     private PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
@@ -214,7 +218,7 @@
 orderDetailInfo.Quantity));
         orderDetails = orderDetails.ToList();
         paymentDetailsDTO.Total += orderDetails.Last().Total ?? 0;
-        orderDetailInfo = newOrderDetail(TipoServicioIndex.TryGetValue(tipoServicio, out var index) ? index : null);;
+        orderDetailInfo = newOrderDetail(TipoServicioIndex.TryGetValue(tipoServicio, out var index) ? index : null); ;
 
         // Fuerza la recreación del autocomplete para limpiar el texto/filtro interno.
         individualAutocompleteKey++;
@@ -227,7 +231,7 @@ orderDetailInfo.Quantity));
 
         if (string.IsNullOrWhiteSpace(clientName))
         {
-            notificationService.Notify(NotificationSeverity.Warning, "Debe ingresar un cliente");
+            notificationService.Notify(NotificationSeverity.Warning, "Debe ingresar un cliente", closeOnClick:true);
             return;
         }
 
@@ -246,12 +250,12 @@ orderDetailInfo.Quantity));
         {
             await registerOrderService.RegisterOrder(orderRequest);
             isOrderRegistered = true;
-            notificationService.Notify(NotificationSeverity.Success, "Orden registrada exitosamente");
+            notificationService.Notify(NotificationSeverity.Success, "Orden registrada exitosamente", closeOnClick:true);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error al registrar la nota: {ex.Message}");
-            notificationService.Notify(NotificationSeverity.Error, "Error al registrar la nota");
+            notificationService.Notify(NotificationSeverity.Error, "Error al registrar la nota", closeOnClick:true);
         }
     }
 

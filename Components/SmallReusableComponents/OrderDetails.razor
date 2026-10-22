@@ -10,10 +10,10 @@
             <RadzenLabel Text=@String.Concat("Cliente: ", Order.Client.Name) />
         }
         <RadzenLabel Text=@String.Concat("Folio: ", Order.Folio) />
-        <RadzenLabel Text=@String.Concat("Recibido: ", Order.ReceivedDate.ToLocalTime().ToString("dddd, dd \\de MMMM \\de yyyy hh:mm tt")) />
+        <RadzenLabel Text=@String.Concat("Recibido: ", Order.ReceivedDate.ToOffset(TimeSpan.FromHours(-6)).ToString("dddd, dd \\de MMMM \\de yyyy hh:mm tt")) />
         
         <RadzenLabel
-        Text="@String.Concat("Entregado: ", Order.DeliveryDate.HasValue ? Order.DeliveryDate.Value.ToLocalTime().ToString("dd/MM/yyyy hh:mm tt") : "PENDIENTE")" />
+        Text="@String.Concat("Entregado: ", Order.DeliveryDate.HasValue ? Order.DeliveryDate.Value.ToOffset(TimeSpan.FromHours(-6)).ToString("dddd, dd \\de MMMM \\de yyyy hh:mm tt") : "PENDIENTE")" />
         <RadzenLabel Text=@String.Concat("Comentarios: ", Order.Comments) />
     </RadzenRow>
 
