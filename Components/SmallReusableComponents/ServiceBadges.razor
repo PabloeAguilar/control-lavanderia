@@ -1,0 +1,56 @@
+@using Models
+
+@if (Services.Count == 0)
+{
+    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-secondary-color);">—</RadzenText>
+}
+else
+{
+    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+        @foreach (var service in Services)
+        {
+            <RadzenBadge BadgeStyle="BadgeStyle.Light"
+                         Text="@($"{service.Type} {service.Quantity:0.##}")" />
+        }
+    </div>
+}
+
+@code {
+    /// <summary>Nota de la que se muestran los servicios (tipo y cantidad).</summary>
+    [Parameter, EditorRequired]
+    public Order Order { get; set; } = default!;
+
+    /// <summary>
+    /// Servicios de la nota agrupados por tipo, con la cantidad total de cada uno.
+    /// </summary>
+    private List<ServiceSummary> Services
+    {
+        get
+        {
+            var details = Order?.OrderDetails;
+
+            if (details is null || details.Count == 0)
+            {
+                return [];
+            }
+
+            return details
+                .Where(detail => !string.IsNullOrWhiteSpace(detail.Type))
+                .GroupBy(detail => detail.Type.Trim(), StringComparer.OrdinalIgnoreCase)
+                .Select(group => new ServiceSummary(
+                    Capitalize(group.Key),
+                    group.Sum(detail => detail.Quantity)))
+                .OrderBy(summary => summary.Type)
+                .ToList();
+        }
+    }
+
+    private static string Capitalize(string value)
+    {
+        return value.Length <= 1
+            ? value.ToUpperInvariant()
+            : char.ToUpperInvariant(value[0]) + value[1..];
+    }
+
+    private sealed record ServiceSummary(string Type, decimal Quantity);
+}
