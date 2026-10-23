@@ -10,7 +10,7 @@
 @using Utilities
 @using control_lavanderia.Components.SmallReusableComponents
 @inject RegisterOrderService registerOrderService;
-@inject ClientsService clientsService;
+@inject DataCacheService dataCacheService;
 @inject NotificationService notificationService;
 @inject ConfigurationsService configurationsService;
 @inject SuggestionsService suggestionsService;
@@ -155,6 +155,9 @@
 </RadzenStack>
 
 @code {
+    // Cantidad máxima de sugerencias de clientes mostradas en el autocompletado.
+    private const int MaxClientSuggestions = 10;
+
     private string comments = String.Empty;
     private OrderDetailInfo orderDetailInfo = new OrderDetailInfo();
 
@@ -206,9 +209,11 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadConfigurationsAsync();
+
+        // Precarga las sugerencias para que se muestren al abrir el autocompletado.
+        await LoadClientsByFilterAsync(null);
+
         orderDetailInfo = newOrderDetail(null);
-
-
     }
 
     private void AgregarDetalleOrden(string tipoServicio)
@@ -266,13 +271,42 @@ orderDetailInfo.Quantity));
 
     private Task LoadClientsAsync(LoadDataArgs args)
     {
-        var filter = args.Filter?.Trim() ?? string.Empty;
-        return LoadClientsByFilterAsync(filter);
+        return LoadClientsByFilterAsync(args.Filter);
     }
 
-    private async Task LoadClientsByFilterAsync(string filter)
+    private async Task LoadClientsByFilterAsync(string? filter)
     {
-        clientSuggestions = await clientsService.SearchClientsByName(filter);
+        clientSuggestions = await SearchClientsAsync(filter);
+    }
+
+    private async Task<IReadOnlyList<Client>> SearchClientsAsync(string? filter)
+    {
+        var clients = await dataCacheService.GetClientsAsync();
+        var searchTerm = filter?.Trim();
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return clients.Take(MaxClientSuggestions).ToList();
+        }
+
+        return clients
+            .Where(candidate => candidate.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .Take(MaxClientSuggestions)
+            .ToList();
+    }
+
+    private async Task<Client?> FindClientByNameAsync(string? clientName)
+    {
+        if (string.IsNullOrWhiteSpace(clientName))
+        {
+            return null;
+        }
+
+        var normalizedName = clientName.Trim();
+        var clients = await dataCacheService.GetClientsAsync();
+
+        return clients.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name.Trim(), normalizedName, StringComparison.OrdinalIgnoreCase));
     }
 
     private Task OnClientChangedAsync(object value)
@@ -300,7 +334,7 @@ orderDetailInfo.Quantity));
             return;
         }
 
-        var existingClient = await clientsService.GetClientByExactName(clientName);
+        var existingClient = await FindClientByNameAsync(clientName);
         client = existingClient ?? new Client(clientName, string.Empty);
         selectedClientItem = existingClient;
 
@@ -321,18 +355,20 @@ orderDetailInfo.Quantity));
         
     }
 
-    private void RestartRegister()
+    private async Task RestartRegister()
     {
         orderDetailInfo = newOrderDetail(null);
         orderDetails = new List<OrderDetail>();
         client = new Client(String.Empty, String.Empty);
-        clientSuggestions = Array.Empty<Client>();
         clientName = string.Empty;
         selectedClientItem = null;
         comments = string.Empty;
         receivedDate = DateTimeOffset.Now;
         paymentDetailsDTO = new PaymentDetailsDTO();
         isOrderRegistered = false;
+
+        // Vuelve a precargar las sugerencias de clientes para el siguiente registro.
+        await LoadClientsByFilterAsync(null);
 
         // Fuerza la recreación del autocomplete para limpiar el texto/filtro interno.
         individualAutocompleteKey++;

@@ -6,13 +6,11 @@
 @using Utilities
 @using control_lavanderia.Components.SmallReusableComponents
 @inject OrdersService OrdersService
-@inject ClientsService ClientsService
+@inject DataCacheService dataCacheService
 @inject DialogService dialogService
 @inject NotificationService notificationService
 @inject PrintService printService
 
-
-@* TODO: Requires revision for on load filtering in auto complete *@
 <RadzenDialog />
 <RadzenNotification />
 
@@ -24,11 +22,11 @@
         <RadzenStack Style="margin-bottom: 20px;">
             <RadzenLabel Style="font-size: 1.5rem;" Text="Cliente" />
             <RadzenAutoComplete @bind-Value="clientName" Data="@clientSuggestions" TextProperty="@nameof(Client.Name)"
-                                Placeholder="Cliente" Change="OnClientChangedAsync" OpenOnFocus="true" MinLength="3" FilterDelay="400"
+                                Placeholder="Cliente" Change="OnClientChangedAsync" LoadData="LoadClientsAsync"
+                                OpenOnFocus="true" MinLength="0" FilterDelay="150"
                                 FilterOperator="StringFilterOperator.Contains"
-                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" 
-                                InputAttributes="StaticElements.numericSelectAllAttributes"
-                                 />
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                InputAttributes="StaticElements.numericSelectAllAttributes" />
         </RadzenStack>
 
         @if (isLoading)
@@ -123,6 +121,9 @@
 </RadzenRow>
 
 @code {
+    // Cantidad máxima de sugerencias de clientes mostradas en el autocompletado.
+    private const int MaxClientSuggestions = 10;
+
     private Order? selectedOrder;
     private IList<Order>? selectedOrders;
 
@@ -141,7 +142,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadClientSuggestions();
+        // Precarga las sugerencias para que se muestren al abrir el autocompletado.
+        await LoadClientsByFilterAsync(null);
         await RefreshOrders();
     }
 
@@ -250,14 +252,55 @@
         }
     }
 
-    private async Task LoadClientSuggestions()
+    private Task LoadClientsAsync(LoadDataArgs args)
     {
-        clientSuggestions = await ClientsService.SearchClientsByName(null, 1000);
+        return LoadClientsByFilterAsync(args.Filter);
     }
 
-    private async Task OnClientChangedAsync(object value)
+    private async Task LoadClientsByFilterAsync(string? filter)
     {
-        clientName = value?.ToString()?.Trim() ?? string.Empty;
+        clientSuggestions = await SearchClientsAsync(filter);
+    }
+
+    private async Task<IReadOnlyList<Client>> SearchClientsAsync(string? filter)
+    {
+        var clients = await dataCacheService.GetClientsAsync();
+        var searchTerm = filter?.Trim();
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return clients.Take(MaxClientSuggestions).ToList();
+        }
+
+        return clients
+            .Where(candidate => candidate.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .Take(MaxClientSuggestions)
+            .ToList();
+    }
+
+    private async Task<Client?> FindClientByNameAsync(string? clientName)
+    {
+        if (string.IsNullOrWhiteSpace(clientName))
+        {
+            return null;
+        }
+
+        var normalizedName = clientName.Trim();
+        var clients = await dataCacheService.GetClientsAsync();
+
+        return clients.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name.Trim(), normalizedName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private Task OnClientChangedAsync(object value)
+    {
+        var normalizedClientName = value?.ToString()?.Trim() ?? string.Empty;
+        return OnClientNameChangedAsync(normalizedClientName);
+    }
+
+    private async Task OnClientNameChangedAsync(string normalizedClientName)
+    {
+        clientName = normalizedClientName;
 
         if (string.IsNullOrWhiteSpace(clientName))
         {
@@ -268,10 +311,9 @@
             return;
         }
 
-        var matchedClient = clientSuggestions.FirstOrDefault(client =>
-            string.Equals(client.Name, clientName, StringComparison.OrdinalIgnoreCase));
+        var existingClient = await FindClientByNameAsync(clientName);
 
-        if (matchedClient is null)
+        if (existingClient is null)
         {
             if (selectedClient.Id != 0)
             {
@@ -284,13 +326,13 @@
             return;
         }
 
-        if (selectedClient.Id == matchedClient.Id)
+        if (selectedClient.Id == existingClient.Id)
         {
             return;
         }
 
-        selectedClient = matchedClient;
-        clientName = matchedClient.Name;
+        selectedClient = existingClient;
+        clientName = existingClient.Name;
         selectedOrder = null;
         paymentDetailsDTO = new PaymentDetailsDTO();
         await RefreshOrders();
