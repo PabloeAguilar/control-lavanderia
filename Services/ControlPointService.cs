@@ -41,6 +41,21 @@ namespace Services
                 .ToListAsync();
         }
 
+        public async Task<List<OrderMovement>> GetMovementsByDate(DateTimeOffset? startDate = null)
+        {
+            var reference = startDate ?? DateTimeOffset.Now;
+            var dayStart = new DateTimeOffset(reference.Year, reference.Month, reference.Day, 0, 0, 0, reference.Offset).ToUniversalTime();
+            var dayEnd = dayStart.AddDays(1);
+            await using var context = await contextFactory.CreateDbContextAsync();
+            return await context.OrderMovements
+                .Include(movement => movement.Order)
+                .ThenInclude(order => order!.Client)
+                .Where(movement => !movement.DeletedDate.HasValue)
+                .Where(movement => movement.Date >= dayStart && movement.Date < dayEnd)
+                .OrderByDescending(movement => movement.Date)
+                .ToListAsync();
+        }
+
         public async Task<bool> UpdateMovement(OrderMovement movement, int selectedLocationId)
         {
             if (!movement.Id.HasValue)

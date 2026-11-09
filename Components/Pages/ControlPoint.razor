@@ -26,12 +26,12 @@ else
                 <h2>Seleccionado: @selectedLocation.Name</h2>
                 <p>@selectedLocation.Description</p> *@
                 <RadzenDatePicker @bind-Value="searchDate" ShowButton="false"
-                                  Change="@(async args => await LoadMovementsByLocationAsync(selectedLocation.Id))" />
+                                  Change="@(async args => await LoadMovementsByDate())" />
                 <RadzenButton Text="Registrar movimiento" Click="@InsertRow" Disabled="@(newOrderMovement != null)" />
             </RadzenStack>
         </RadzenColumn>
     </RadzenRow>
-    <RadzenTabs Change="OnLocationSelected" Overflow="TabsOverflow.Wrap" >
+    <RadzenTabs Change="OnLocationSelected" Overflow="TabsOverflow.Wrap">
         <Tabs>
             @foreach (var location in locations)
             {
@@ -116,6 +116,13 @@ else
     {
         await LoadLocationsAsync();
         await LoadAvailableOrdersAsync();
+        await LoadMovementsByDate();
+
+    }
+
+    private async Task<List<OrderMovement>> LoadMovementsByDate()
+    {
+        return await ControlPointService.GetMovementsByDate(searchDate.ToDateTime(TimeOnly.MinValue));
     }
 
     private async Task LoadLocationsAsync()
@@ -124,7 +131,7 @@ else
         if (locations.Count > 0)
         {
             selectedLocation = locations[0];
-            await LoadMovementsByLocationAsync(selectedLocation.Id);
+            await LoadMovementsByDate();
         }
     }
 
@@ -156,7 +163,6 @@ else
 
         selectedLocation = location;
         newOrderMovement = null;
-        await LoadMovementsByLocationAsync(location.Id);
     }
 
     async Task InsertRow()
@@ -193,8 +199,7 @@ else
             notificationService.Notify(NotificationSeverity.Warning, "Movimiento no encontrado");
             return;
         }
-
-        await LoadMovementsByLocationAsync(selectedLocation.Id);
+        await LoadMovementsByDate();
     }
 
     async Task OnCreateRow(OrderMovement orderMovement)
@@ -203,10 +208,10 @@ else
         {
             return;
         }
-
+        searchDate = DateOnly.FromDateTime(DateTimeOffset.Now.Date);
         await ControlPointService.CreateMovement(orderMovement, selectedLocation.Id);
         newOrderMovement = null;
-        await LoadMovementsByLocationAsync(selectedLocation.Id);
+        await LoadMovementsByDate();
     }
 
     async Task DeleteMovement(OrderMovement orderMovement)
