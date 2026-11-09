@@ -11,91 +11,97 @@
 
 <RadzenNotification />
 
-@if (selectedLocation != null)
+@if (selectedLocation == null)
+{
+    <h1>
+        Hay un problema con la configuración de location
+    </h1>
+}
+else
 {
     <RadzenRow>
         <RadzenColumn Size="6">
             <RadzenStack JustifyContent="JustifyContent.SpaceAround">
-                <RadzenButton Text="Regresar" Click="@(() => selectedLocation = null)" />
+                @* <RadzenButton Text="Regresar" Click="@(() => selectedLocation = null)" />
                 <h2>Seleccionado: @selectedLocation.Name</h2>
-                <p>@selectedLocation.Description</p>
-                <RadzenDatePicker @bind-Value="searchDate" ShowButton="false" Change="@(async args => await LoadMovementsByLocationAsync(selectedLocation.Id))" />
-                <RadzenButton Text="Registrar movimiento" Click="@InsertRow" Disabled="@(newOrderMovement != null)" />            </RadzenStack>
+                <p>@selectedLocation.Description</p> *@
+                <RadzenDatePicker @bind-Value="searchDate" ShowButton="false"
+                                  Change="@(async args => await LoadMovementsByLocationAsync(selectedLocation.Id))" />
+                <RadzenButton Text="Registrar movimiento" Click="@InsertRow" Disabled="@(newOrderMovement != null)" />
+            </RadzenStack>
         </RadzenColumn>
     </RadzenRow>
+    <RadzenTabs Change="OnLocationSelected" Overflow="TabsOverflow.Wrap" >
+        <Tabs>
+            @foreach (var location in locations)
+            {
+                <RadzenTabsItem Text="@location.Name">
+                    <RadzenDataGrid EmptyText="No hay registros para mostrar" TItem="OrderMovement" Data="@orderMovements"
+                                    @ref="orderMovementGrid" RowUpdate="@OnUpdateRow" Responsive="true" RowCreate="@OnCreateRow"
+                                    EditMode="DataGridEditMode.Single">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="OrderMovement" Property="Order.Client.Name" Title="Orden ID">
+                                <Template Context="data">
+                                    @data.Order?.Client?.Name - @data.Order?.Folio
+                                </Template>
+                                <EditTemplate Context="data">
+                                    <RadzenDropDown @bind-Value="data.OrderId" Data="@availableOrders" ValueProperty="Id"
+                                                    Style="width:100%">
+                                        <Template Context="order">
+                                            @order.Client.Name - @order.Folio
+                                        </Template>
+                                    </RadzenDropDown>
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="OrderMovement" Property="Quantity" Title="Cantidad">
+                                <Template Context="data">
+                                    @data.Quantity
+                                </Template>
+                                <EditTemplate Context="data">
+                                    <RadzenNumeric @bind-Value="data.Quantity" Style="width:100%" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="OrderMovement" Property="Date" Title="Fecha">
+                                <Template Context="data">
+                                    @data.Date.ToLocalTime().ToString("g")
+                                </Template>
+                                <EditTemplate Context="data">
+                                    <RadzenDatePicker @bind-Value="data.Date" Style="width:100%" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="OrderMovement" Property="Comments" Title="Comentarios">
+                                <Template Context="data">
+                                    @data.Comments
+                                </Template>
+                                <EditTemplate Context="data">
+                                    <RadzenTextArea @bind-Value="data.Comments" Style="width:100%" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title="Opciones" Context="data">
+                                <Template>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Large"
+                                                  Click="@(() => EditRow(data))" />
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Large"
+                                                  Click="@(async () => await DeleteMovement(data))" />
+                                </Template>
+                                <EditTemplate>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="save" Size="ButtonSize.Large"
+                                                  Click="@(() => UpdateRow(data))" />
+                                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Size="ButtonSize.Large"
+                                                  Click="@(() => CancelEdit(data))" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
 
-    <RadzenDataGrid EmptyText="No hay registros para mostrar" TItem="OrderMovement" Data="@orderMovements" @ref="orderMovementGrid" RowUpdate="@OnUpdateRow" Responsive="true"
-                    RowCreate="@OnCreateRow" EditMode="DataGridEditMode.Single">
-        <Columns>
-            <RadzenDataGridColumn TItem="OrderMovement" Property="Order.Client.Name" 
-                                  Title="Orden ID">
-                <Template Context="data">
-                    @data.Order?.Client?.Name - @data.Order?.Folio
-                </Template>
-                <EditTemplate Context="data">
-                    <RadzenDropDown @bind-Value="data.OrderId" Data="@availableOrders" ValueProperty="Id"
-                                    Style="width:100%">
-                        <Template Context="order">
-                            @order.Client.Name - @order.Folio
-                        </Template>
-                    </RadzenDropDown>
-                </EditTemplate>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="OrderMovement" 
-                                  Property="Quantity" Title="Cantidad">
-                <Template Context="data">
-                    @data.Quantity
-                </Template>
-                <EditTemplate Context="data">
-                    <RadzenNumeric @bind-Value="data.Quantity" Style="width:100%" />
-                </EditTemplate>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="OrderMovement" Property="Date" 
-                                  Title="Fecha">
-                <Template Context="data">
-                    @data.Date.ToLocalTime().ToString("g")
-                </Template>
-                <EditTemplate Context="data">
-                    <RadzenDatePicker @bind-Value="data.Date" Style="width:100%" />
-                </EditTemplate>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="OrderMovement" Property="Comments" Title="Comentarios">
-                <Template Context="data">
-                    @data.Comments
-                </Template>
-                <EditTemplate Context="data">
-                    <RadzenTextArea @bind-Value="data.Comments" Style="width:100%" />
-                </EditTemplate>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Opciones" Context="data"  >
-                <Template>
-                    <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Size="ButtonSize.Large"
-                                  Click="@(() => EditRow(data))" />
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Large"
-                                  Click="@(async () => await DeleteMovement(data))" />
-                </Template>
-                <EditTemplate>
-                    <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="save" Size="ButtonSize.Large"
-                                  Click="@(() => UpdateRow(data))" />
-                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Size="ButtonSize.Large"
-                                  Click="@(() => CancelEdit(data))" />
-                </EditTemplate>
-            </RadzenDataGridColumn>
-
-        </Columns>
-    </RadzenDataGrid>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
 
 }
-else
-{
-    <RadzenDataGrid EmptyText="No hay registros para mostrar" TItem="Location" Data="@locations" RowClick="@OnLocationSelected">
-        <Columns>
-            <RadzenDataGridColumn TItem="Location" Property="Name" Title="Ubicación" />
-        </Columns>
-    </RadzenDataGrid>
-}
-
 @code {
+
     RadzenDataGrid<OrderMovement>? orderMovementGrid;
     private OrderMovement? newOrderMovement { get; set; } = null;
     private Location? selectedLocation = null;
@@ -103,6 +109,8 @@ else
     private List<Location> locations = new List<Location>();
     private List<OrderMovement> orderMovements = new List<OrderMovement>();
     private DateOnly searchDate = DateOnly.FromDateTime(DateTimeOffset.Now.Date);
+
+    List<OrderMovement> MovementsByIndex(int index) => orderMovements.Where(m => m.LocationId == index).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,6 +121,11 @@ else
     private async Task LoadLocationsAsync()
     {
         locations = await ControlPointService.GetLocations();
+        if (locations.Count > 0)
+        {
+            selectedLocation = locations[0];
+            await LoadMovementsByLocationAsync(selectedLocation.Id);
+        }
     }
 
     private async Task LoadAvailableOrdersAsync()
@@ -122,13 +135,20 @@ else
 
     private async Task LoadMovementsByLocationAsync(int locationId)
     {
-        Console.WriteLine($"Loading movements for location {locationId} on date {searchDate.ToDateTime(TimeOnly.MinValue)}");
         orderMovements = await ControlPointService.GetMovementsByLocation(locationId, searchDate.ToDateTime(TimeOnly.MinValue));
     }
 
-    async Task OnLocationSelected(DataGridRowMouseEventArgs<Location> args)
+    async void OnLocationSelected(int index)
     {
-        var location = args.Data;
+        Location? location = null;
+        try
+        {
+            location = locations[index];
+        }
+        catch
+        {
+            return;
+        }
         if (location is null)
         {
             return;
