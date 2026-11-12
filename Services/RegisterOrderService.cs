@@ -7,7 +7,7 @@ namespace Services
 {
     public class RegisterOrderService(IDbContextFactory<LavanderiaDbContext> context, DataCacheService cache)
     {
-        public async Task RegisterOrder(RegisterOrderRequest orderRequest)
+        public async Task<Order> RegisterOrder(RegisterOrderRequest orderRequest)
         {
             await using var _context = await context.CreateDbContextAsync();
             var clientName = orderRequest.Client.Name.Trim();
@@ -50,6 +50,7 @@ namespace Services
             // El folio final es el Id con ceros a la izquierda hasta 7 dígitos.
             orderRequest.Order.Folio = orderRequest.Order.Id.ToString("D7");
             await _context.SaveChangesAsync();
+            
 
             // Mantener el cache al día: un cliente nuevo invalida la lista de clientes
             // y la orden recién recibida se refleja en las órdenes del día.
@@ -59,6 +60,7 @@ namespace Services
             }
 
             await cache.RefreshOrderAsync(orderRequest.Order.Id);
+            return orderRequest.Order;
         }
     }
 }

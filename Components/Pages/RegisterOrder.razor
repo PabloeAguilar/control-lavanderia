@@ -4,7 +4,6 @@
 
 @using System.Collections.Immutable
 @using DTOs
-@using Microsoft.AspNetCore.Mvc.Formatters
 @using Models
 @using Services
 @using Utilities
@@ -14,6 +13,7 @@
 @inject NotificationService notificationService;
 @inject ConfigurationsService configurationsService;
 @inject SuggestionsService suggestionsService;
+@inject PrintService printService;
 
 <HeadContent>
     <link href="CustomStyles.css" rel="stylesheet" />
@@ -150,6 +150,8 @@
     }
     else
     {
+        <RadzenButton Text="Imprimir ticket" Icon="assignment_turned_in" ButtonStyle="ButtonStyle.Success"
+                      Click="PrintTicket" Style="width: 100%;" />
         <RadzenButton Text="Reiniciar registro" Click="@RestartRegister" ButtonStyle="ButtonStyle.Secondary" />
     }
 </RadzenStack>
@@ -180,6 +182,7 @@
 
     // Se incrementa para forzar la recreación del RadzenAutoComplete y limpiar su filtro interno.
     private int individualAutocompleteKey = 0;
+    private Order? registeredOrder = null;
 
     private async Task LoadConfigurationsAsync()
     {
@@ -236,7 +239,7 @@ orderDetailInfo.Quantity));
 
         if (string.IsNullOrWhiteSpace(clientName))
         {
-            notificationService.Notify(NotificationSeverity.Warning, "Debe ingresar un cliente", closeOnClick:true);
+            notificationService.Notify(NotificationSeverity.Warning, "Debe ingresar un cliente", closeOnClick: true);
             return;
         }
 
@@ -253,14 +256,14 @@ orderDetailInfo.Quantity));
         };
         try
         {
-            await registerOrderService.RegisterOrder(orderRequest);
+            registeredOrder = await registerOrderService.RegisterOrder(orderRequest);
             isOrderRegistered = true;
-            notificationService.Notify(NotificationSeverity.Success, "Orden registrada exitosamente", closeOnClick:true);
+            notificationService.Notify(NotificationSeverity.Success, "Orden registrada exitosamente", closeOnClick: true);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error al registrar la nota: {ex.Message}");
-            notificationService.Notify(NotificationSeverity.Error, "Error al registrar la nota", closeOnClick:true);
+            notificationService.Notify(NotificationSeverity.Error, "Error al registrar la nota", closeOnClick: true);
         }
     }
 
@@ -366,12 +369,26 @@ orderDetailInfo.Quantity));
         receivedDate = DateTimeOffset.Now;
         paymentDetailsDTO = new PaymentDetailsDTO();
         isOrderRegistered = false;
+        registeredOrder = null;
 
         // Vuelve a precargar las sugerencias de clientes para el siguiente registro.
         await LoadClientsByFilterAsync(null);
 
         // Fuerza la recreación del autocomplete para limpiar el texto/filtro interno.
         individualAutocompleteKey++;
+    }
+
+    private async Task PrintTicket()
+    {
+        if (registeredOrder == null)
+            return;
+        Console.WriteLine("MAndando impresión");
+        PrintOrderRequest printOrderRequest = new()
+        {
+            Order = registeredOrder
+        };
+        bool printed = await printService.PrintOrder(printOrderRequest);
+
     }
 
     private static ImmutableDictionary<string, string> TipoServicioIndex = ImmutableDictionary.CreateRange(new
