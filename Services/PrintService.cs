@@ -1,4 +1,7 @@
+using System.Globalization;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using control_lavanderia.Components.Data;
 using ESCPOS_NET.Emitters;
@@ -6,6 +9,7 @@ using ESCPOS_NET.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Models;
+using Radzen.Blazor.Rendering;
 
 namespace Services
 {
@@ -85,28 +89,27 @@ namespace Services
                 e.SetStyles(PrintStyle.None),
                 e.PrintLine("------------------------------"),
                 e.LeftAlign(),
-                e.PrintLine("DESCRIPCION".PadRight(22) + "CANTIDAD".PadRight(18) + "SUBTOTAL"), //22 18 8
+                e.PrintLine("DESCRIPCION".PadRight(20) + "CANTIDAD".PadLeft(9) + "UNITARIO".PadLeft(10) + "SUBTOTAL".PadLeft(9)), //22 18 8 //nuevo 20, 9, 10, 9
 
             };
-
+            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
             request.Order.OrderDetails?.ToList().ForEach(od =>
             {
                 ticketParts.Add(ByteSplicer.Combine(
                     e.LeftAlign(),
-                    e.Print(od.Type?.PadRight(22) ?? "N/A".PadRight(22)),
-                    e.CenterAlign(),
-                    e.Print(od.Quantity.ToString().PadRight(18) ?? "N/A".PadRight(22)),
-                    e.RightAlign(),
-                    e.PrintLine($"{od.Total:C}".PadLeft(8))
+                    GetServicioStringBytes(od, e, textInfo, 20),
+                    GetCantidadStringBytes(od, e, textInfo, 9),
+                    e.Print(od.Price.ToString().PadLeft(10) ?? "N/A".PadRight(10)),
+                    e.PrintLine($"{od.Total:C}".PadLeft(9))
                 ));
             });
 
-            ticketParts.Add(e.PrintLine($"Total: {Total:C}"));
+            ticketParts.Add(e.PrintLine($"Total: {Total:C}".PadLeft(48)));
             ticketParts.Add(e.PrintLine("------------------------------"));
             ticketParts.Add(e.CenterAlign());
             ticketParts.Add(e.PrintLine(GetConfig("BusinessMessage")));
             ticketParts.Add(e.FullCutAfterFeed(2));
-            
+
 
             Console.WriteLine("Impresión lista");
             var ticket = ByteSplicer.Combine([.. ticketParts]);
@@ -122,7 +125,27 @@ namespace Services
             await IsPrinterConfigured();
         }
 
+        private byte[] GetServicioStringBytes(OrderDetail od, EPSON e, TextInfo textInfo, int pad = 20)
+        {
+            if (od.Type.Equals("individual") && !string.IsNullOrWhiteSpace(od.Description))
+            {
+                return e.Print(od.Description.PadRight(pad) ?? "N/A".PadRight(pad));
+            }
+            else if (od.Type.Equals("lavado"))
+            {
+                return e.Print("Ropa".PadRight(pad) ?? "N/A".PadRight(pad));
+            }
+            return e.Print(textInfo.ToTitleCase(od.Type?.PadRight(pad) ?? "N/A".PadRight(pad)));
+        }
 
+        private byte[] GetCantidadStringBytes(OrderDetail od, EPSON e, TextInfo textInfo, int pad = 9)
+        {
+            if (od.Quantity == 0)
+            {
+                return e.Print("Pendiente".PadLeft(9));
+            }
+            return e.Print(od.Quantity.ToString().PadLeft(9) ?? "N/A".PadRight(9));
+        }
     }
 
     public class PrintOrderRequest

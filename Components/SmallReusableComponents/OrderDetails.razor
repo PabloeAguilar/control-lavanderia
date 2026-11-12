@@ -33,7 +33,19 @@
     <Columns>
         <RadzenDataGridColumn TItem="OrderDetail" Property="Type" Title="Servicio">
             <Template Context="data">
-                <span>@data.Type.ToUpper()</span>
+                @if(data.Type.Equals("individual"))
+                {
+                    <span>@data.Description!.ToUpper()</span>
+                }
+                else if((data.Type.Equals("lavado")))
+                {
+                    <span>ROPA</span>
+                }
+                else
+                {
+                    <span>@data.Type.ToUpper()</span>
+                }
+
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="OrderDetail" Property="Quantity" Title="Cantidad">
