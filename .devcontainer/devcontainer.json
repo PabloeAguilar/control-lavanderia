@@ -1,0 +1,27 @@
+{
+  "name": "control-lavanderia (C# + PostgreSQL)",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [5091],
+  "portsAttributes": {
+    "5091": {
+      "label": "Blazor (http)",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "dotnet restore",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "ms-ossdata.vscode-pgsql"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "control-lavanderia.sln"
+      }
+    }
+  }
+}
