@@ -127,7 +127,8 @@
     <RadzenColumn SizeLG="6" SizeXS="12">
         <RadzenStack>
             <RadzenLabel Style="font-size: 1.5rem;" Text="Detalles de la orden" />
-            <OrderDetails orderDetails="@orderDetails" />
+            <OrderDetails orderDetails="@orderDetails" OnRemoveRequested="RemoverDetalleOrden"
+                          IsReadOnly="@isOrderRegistered" />
             <PaymentDetails paymentDetailsDTO="@paymentDetailsDTO" IsEditable="@(!isOrderRegistered)" />
         </RadzenStack>
 
@@ -230,6 +231,21 @@ orderDetailInfo.Quantity));
 
         // Fuerza la recreación del autocomplete para limpiar el texto/filtro interno.
         individualAutocompleteKey++;
+    }
+
+    private void RemoverDetalleOrden(OrderDetail detail)
+    {
+        if (isOrderRegistered) return;
+        if (!orderDetails.Remove(detail)) return;
+
+        paymentDetailsDTO.Total = Math.Max(0, paymentDetailsDTO.Total - (detail.Total ?? 0));
+        if (paymentDetailsDTO.Adelanto > paymentDetailsDTO.Total)
+        {
+            paymentDetailsDTO.Adelanto = paymentDetailsDTO.Total;
+        }
+
+        // La grilla no observa cambios en la lista, se reasigna para forzar su recarga.
+        orderDetails = orderDetails.ToList();
     }
 
 

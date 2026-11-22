@@ -77,12 +77,24 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        @if (IsEditable)
+        @if (IsEditable || (OnRemoveRequested.HasDelegate && !IsReadOnly))
         {
-            <RadzenDataGridColumn TItem="OrderDetail" Title="Acciones" Width="130px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn TItem="OrderDetail" Title="Acciones"
+                                  Width="@(OnRemoveRequested.HasDelegate && !IsReadOnly ? "140px" : "130px")"
+                                  TextAlign="TextAlign.Center">
                 <Template Context="data">
-                    <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
-                                  Click="@(() => OnEditRequested.InvokeAsync(data))" Disabled="@IsReadOnly" />
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="4px" JustifyContent="JustifyContent.Center">
+                        @if (IsEditable)
+                        {
+                            <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light"
+                                          Click="@(() => OnEditRequested.InvokeAsync(data))" Disabled="@IsReadOnly" />
+                        }
+                        @if (OnRemoveRequested.HasDelegate && !IsReadOnly)
+                        {
+                            <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger"
+                                          Click="@(() => OnRemoveRequested.InvokeAsync(data))" />
+                        }
+                    </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
         }
@@ -100,6 +112,9 @@
     public bool IsReadOnly { get; set; } = false;
     [Parameter]
     public EventCallback<OrderDetail> OnEditRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<OrderDetail> OnRemoveRequested { get; set; }
 
     [Parameter]
     public EventCallback<int> OnOrderUpdated { get; set; }
