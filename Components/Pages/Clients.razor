@@ -1,0 +1,177 @@
+@page "/clientes"
+@rendermode InteractiveServer
+@using Models
+@using Services
+@inject DataCacheService dataCacheService
+@inject ClientsService clientsService
+@inject NotificationService notificationService
+
+<PageTitle>Clientes</PageTitle>
+
+<RadzenRow Style="margin-bottom: 0.5rem; align-items: center;">
+    <RadzenColumn SizeXS="12" SizeSM="6">
+        <h1>Clientes</h1>
+    </RadzenColumn>
+    <RadzenColumn SizeXS="12" SizeSM="6" Style="text-align: right;">
+        <RadzenButton Text="Actualizar" Icon="refresh" ButtonStyle="ButtonStyle.Light"
+                      IsBusy="@isLoading" Click="ReloadAsync" />
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenNotification />
+
+<RadzenDataGrid @ref="clientsGrid" TItem="Client" Data="@clients"
+                EditMode="DataGridEditMode.Single" RowUpdate="OnUpdateRow"
+                AllowPaging="true" PageSize="10"
+                AllowSorting="true" AllowFiltering="true"
+                Responsive="true" EmptyText="No hay clientes para mostrar"
+                Style="width: 100%;">
+    <Columns>
+        <RadzenDataGridColumn TItem="Client" Property="Name" Title="Nombre">
+            <Template Context="client">
+                @client.Name
+            </Template>
+            <EditTemplate Context="client">
+                <RadzenTextBox @bind-Value="client.Name" MaxLength="50" Placeholder="Nombre del cliente"
+                               Style="width: 100%;" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="Client" Property="Phone" Title="Teléfono" Width="14rem">
+            <Template Context="client">
+                @(string.IsNullOrWhiteSpace(client.Phone) ? "—" : client.Phone)
+            </Template>
+            <EditTemplate Context="client">
+                <RadzenTextBox @bind-Value="client.Phone" MaxLength="15" Placeholder="Teléfono"
+                               Style="width: 100%;" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="Client" Title="Opciones" Width="9rem" Sortable="false" Filterable="false">
+            <Template Context="client">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium"
+                              Click="@(() => EditRow(client))" />
+            </Template>
+            <EditTemplate Context="client">
+                <RadzenButton Icon="save" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Medium"
+                              Click="@(() => UpdateRow(client))" />
+                <RadzenButton Icon="cancel" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Medium"
+                              Click="@(() => CancelEdit(client))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    private RadzenDataGrid<Client>? clientsGrid;
+    private List<Client> clients = [];
+    private bool isLoading = true;
+    private Client? editingClient;
+    private Client? editingBackup;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadClientsAsync();
+    }
+
+    private Task ReloadAsync()
+    {
+        if (editingClient is not null)
+        {
+            CancelEdit(editingClient);
+        }
+
+        return LoadClientsAsync(forceRefresh: true);
+    }
+
+    private async Task LoadClientsAsync(bool forceRefresh = false)
+    {
+        isLoading = true;
+
+        try
+        {
+            // El módulo trabaja sobre el cache compartido de clientes: cargarlo una vez
+            // evita consultar la base de datos en cada paginación.
+            var cachedClients = await dataCacheService.GetClientsAsync(forceRefresh);
+            clients = cachedClients.Select(CloneClient).ToList();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnUpdateRow(Client client)
+    {
+        try
+        {
+            await clientsService.UpdateClient(client.Id, client.Name, client.Phone);
+            notificationService.Notify(NotificationSeverity.Success, "Cliente actualizado correctamente");
+        }
+        catch (InvalidOperationException ex)
+        {
+            notificationService.Notify(NotificationSeverity.Warning, ex.Message);
+        }
+        catch
+        {
+            notificationService.Notify(NotificationSeverity.Error, "No fue posible actualizar el cliente");
+        }
+        finally
+        {
+            // Vuelve a tomar los datos del cache para descartar cambios no guardados
+            // y reflejar el nombre ordenado después de la edición.
+            ClearEditingState();
+            await LoadClientsAsync();
+        }
+    }
+
+    private void EditRow(Client client)
+    {
+        if (editingClient is not null && !ReferenceEquals(editingClient, client))
+        {
+            RestoreEditingClient();
+        }
+
+        editingClient = client;
+        editingBackup = CloneClient(client);
+        clientsGrid?.EditRow(client);
+    }
+
+    private void UpdateRow(Client client)
+    {
+        clientsGrid?.UpdateRow(client);
+    }
+
+    private void CancelEdit(Client client)
+    {
+        RestoreEditingClient();
+        clientsGrid?.CancelEditRow(client);
+    }
+
+    private void RestoreEditingClient()
+    {
+        if (editingClient is not null && editingBackup is not null)
+        {
+            editingClient.Name = editingBackup.Name;
+            editingClient.Phone = editingBackup.Phone;
+        }
+
+        ClearEditingState();
+    }
+
+    private void ClearEditingState()
+    {
+        editingClient = null;
+        editingBackup = null;
+    }
+
+    // El cache es compartido (p. ej. con el autocompletado de notas), así que la
+    // cuadrícula trabaja con copias para no modificarlo antes de guardar.
+    private static Client CloneClient(Client client)
+    {
+        return new Client(client.Name, client.Phone ?? string.Empty)
+        {
+            Id = client.Id
+        };
+    }
+}

@@ -114,6 +114,44 @@ namespace Services
             _clientsNeedRefresh = true;
         }
 
+        /// <summary>
+        /// Reemplaza un cliente dentro del cache y mantiene la lista ordenada por nombre.
+        /// Si el cache todavía no se ha cargado o el cliente no está en la lista, se marca
+        /// para recargarse en la próxima lectura.
+        /// </summary>
+        public async Task UpdateCachedClientAsync(Client updatedClient)
+        {
+            await _clientsSemaphore.WaitAsync();
+            try
+            {
+                if (!_clientsLoaded)
+                {
+                    _clientsNeedRefresh = true;
+                    return;
+                }
+
+                var index = _clients.FindIndex(client => client.Id == updatedClient.Id);
+                if (index < 0)
+                {
+                    _clientsNeedRefresh = true;
+                    return;
+                }
+
+                // Se publica una nueva lista para que las lecturas concurrentes no vean
+                // la colección a medio modificar.
+                var updatedClients = new List<Client>(_clients);
+                updatedClients[index] = updatedClient;
+
+                _clients = updatedClients
+                    .OrderBy(client => client.Name, StringComparer.CurrentCultureIgnoreCase)
+                    .ToList();
+            }
+            finally
+            {
+                _clientsSemaphore.Release();
+            }
+        }
+
         /// <summary>Limpia el cache de clientes para que se recargue completo en la próxima lectura.</summary>
         public void ClearClients()
         {
