@@ -10,6 +10,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__LavanderiaConnection: Host=postgres;Port=5432;Database=control_lavanderia;Username=postgres;Password=postgres
+    volumes:
+      - pictures_data:/app/wwwroot/Pictures
     ports:
      - "8081:8080"
     depends_on:
@@ -38,6 +40,7 @@ services:
 
 volumes:
   postgres_data:
+  pictures_data:
 
 networks:
   internal:
